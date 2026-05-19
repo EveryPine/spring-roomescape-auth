@@ -4,6 +4,7 @@ CREATE TABLE member
     login_id VARCHAR(255) NOT NULL,
     name     VARCHAR(255) NOT NULL,
     password VARCHAR(255) NOT NULL,
+    role     VARCHAR(10)  NOT NULL CHECK (role = 'USER' OR role = 'ADMIN'),
     PRIMARY KEY (id)
 );
 
