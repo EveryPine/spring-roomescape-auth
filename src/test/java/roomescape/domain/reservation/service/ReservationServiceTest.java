@@ -79,17 +79,17 @@ class ReservationServiceTest {
             assertAll(
                 () -> assertEquals(3, actual.size()),
                 () -> assertEquals(
-                    new ReservationResponseDto(1L, date, TimeResponseDto.from(time),
+                    new ReservationResponseDto(1L, 1L, null, date, TimeResponseDto.from(time),
                         ThemeResponseDto.from(theme)),
                     actual.get(0)),
                 () -> assertEquals(
-                    new ReservationResponseDto(2L, date.plusDays(1),
+                    new ReservationResponseDto(2L, 2L, null, date.plusDays(1),
                         TimeResponseDto.from(Time.reconstruct(2L, LocalTime.of(11, 0))),
                         ThemeResponseDto.from(theme)),
                     actual.get(1)
                 ),
                 () -> assertEquals(
-                    new ReservationResponseDto(3L, date.plusDays(2),
+                    new ReservationResponseDto(3L, 3L, null, date.plusDays(2),
                         TimeResponseDto.from(Time.reconstruct(3L, LocalTime.of(12, 0))),
                         ThemeResponseDto.from(theme)),
                     actual.get(2)
@@ -128,7 +128,7 @@ class ReservationServiceTest {
             assertAll(
                 () -> assertEquals(1, actual.size()),
                 () -> assertEquals(
-                    new ReservationResponseDto(1L, date, TimeResponseDto.from(time),
+                    new ReservationResponseDto(1L, memberId, null, date, TimeResponseDto.from(time),
                         ThemeResponseDto.from(theme)),
                     actual.get(0))
             );

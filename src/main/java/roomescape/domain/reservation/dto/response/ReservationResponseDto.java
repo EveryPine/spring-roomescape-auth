@@ -8,13 +8,15 @@ import roomescape.domain.theme.entity.Theme;
 import roomescape.domain.time.dto.response.TimeResponseDto;
 import roomescape.domain.time.entity.Time;
 
-public record ReservationResponseDto(Long id, @JsonFormat(pattern = "yyyy-MM-dd") LocalDate date,
+public record ReservationResponseDto(Long id, Long memberId, String name,
+                                     @JsonFormat(pattern = "yyyy-MM-dd") LocalDate date,
                                      TimeResponseDto time, ThemeResponseDto theme) {
 
     public static ReservationResponseDto from(Reservation reservation) {
         Time time = reservation.getTime();
         Theme theme = reservation.getTheme();
-        return new ReservationResponseDto(reservation.getId(), reservation.getDate(),
-            TimeResponseDto.from(time), ThemeResponseDto.from(theme));
+        return new ReservationResponseDto(reservation.getId(), reservation.getMemberId(),
+            reservation.getMemberName(),
+            reservation.getDate(), TimeResponseDto.from(time), ThemeResponseDto.from(theme));
     }
 }

@@ -36,8 +36,9 @@ public class JdbcReservationRepository implements ReservationRepository {
     @Override
     public List<Reservation> findAllReservations() {
         String sql = """
-            SELECT r.id, r.member_id, r.date, rt.id AS time_id, rt.start_at, t.id AS theme_id, t.name AS theme_name, t.description, t.image_url
+            SELECT r.id, r.member_id, m.name AS member_name, r.date, rt.id AS time_id, rt.start_at, t.id AS theme_id, t.name AS theme_name, t.description, t.image_url
             FROM reservation r
+            JOIN member m ON r.member_id = m.id
             JOIN reservation_time rt ON r.time_id = rt.id
             JOIN theme t ON r.theme_id = t.id
             """;
@@ -47,8 +48,9 @@ public class JdbcReservationRepository implements ReservationRepository {
     @Override
     public List<Reservation> findReservationsByMemberId(Long memberId) {
         String sql = """
-            SELECT r.id, r.member_id, r.date, rt.id AS time_id, rt.start_at, t.id AS theme_id, t.name AS theme_name, t.description, t.image_url
+            SELECT r.id, r.member_id, m.name AS member_name, r.date, rt.id AS time_id, rt.start_at, t.id AS theme_id, t.name AS theme_name, t.description, t.image_url
             FROM reservation r
+            JOIN member m ON r.member_id = m.id
             JOIN reservation_time rt ON r.time_id = rt.id
             JOIN theme t ON r.theme_id = t.id
             WHERE r.member_id = :memberId
@@ -61,8 +63,9 @@ public class JdbcReservationRepository implements ReservationRepository {
     @Override
     public Optional<Reservation> findReservationById(Long id) {
         String sql = """
-            SELECT r.id, r.member_id, r.date, rt.id AS time_id, rt.start_at, t.id AS theme_id, t.name AS theme_name, t.description, t.image_url
+            SELECT r.id, r.member_id, m.name AS member_name, r.date, rt.id AS time_id, rt.start_at, t.id AS theme_id, t.name AS theme_name, t.description, t.image_url
             FROM reservation r
+            JOIN member m ON r.member_id = m.id
             JOIN reservation_time rt ON r.time_id = rt.id
             JOIN theme t ON r.theme_id = t.id
             WHERE r.id = :id
@@ -81,8 +84,9 @@ public class JdbcReservationRepository implements ReservationRepository {
     public Optional<Reservation> findReservationByDateTimeAndThemeId(LocalDate date, Long timeId,
         Long themeId) {
         String sql = """
-            SELECT r.id, r.member_id, r.date, rt.id AS time_id, rt.start_at, t.id AS theme_id, t.name AS theme_name, t.description, t.image_url
+            SELECT r.id, r.member_id, m.name AS member_name, r.date, rt.id AS time_id, rt.start_at, t.id AS theme_id, t.name AS theme_name, t.description, t.image_url
             FROM reservation r
+            JOIN member m ON r.member_id = m.id
             JOIN reservation_time rt ON r.time_id = rt.id
             JOIN theme t ON r.theme_id = t.id
             WHERE r.date = :date AND rt.id = :timeId AND t.id = :themeId
@@ -178,6 +182,7 @@ public class JdbcReservationRepository implements ReservationRepository {
                 resultSet.getString("image_url")
             ),
             LocalDateTime.MIN
-        ).withId(resultSet.getLong("id"));
+        ).withId(resultSet.getLong("id"))
+            .withMemberName(resultSet.getString("member_name"));
     }
 }

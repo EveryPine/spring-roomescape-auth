@@ -13,6 +13,7 @@ public class Reservation {
 
     private final Long id;
     private final Long memberId;
+    private final String memberName;
     private final LocalDate date;
     private final Time time;
     private final Theme theme;
@@ -22,14 +23,17 @@ public class Reservation {
         validateDateTime(date, time, now);
         this.id = id;
         this.memberId = memberId;
+        this.memberName = null;
         this.date = date;
         this.time = time;
         this.theme = theme;
     }
 
-    private Reservation(Long id, Long memberId, LocalDate date, Time time, Theme theme) {
+    private Reservation(Long id, Long memberId, String memberName, LocalDate date, Time time,
+        Theme theme) {
         this.id = id;
         this.memberId = memberId;
+        this.memberName = memberName;
         this.date = date;
         this.time = time;
         this.theme = theme;
@@ -42,7 +46,13 @@ public class Reservation {
     }
 
     public Reservation withId(Long id) {
-        return new Reservation(id, this.memberId, this.date, this.time, this.theme);
+        return new Reservation(id, this.memberId, this.memberName, this.date, this.time,
+            this.theme);
+    }
+
+    public Reservation withMemberName(String memberName) {
+        return new Reservation(this.id, this.memberId, memberName, this.date, this.time,
+            this.theme);
     }
 
     private void validateDateTime(LocalDate date, Time time, LocalDateTime now) {
@@ -67,6 +77,10 @@ public class Reservation {
 
     public Long getMemberId() {
         return memberId;
+    }
+
+    public String getMemberName() {
+        return memberName;
     }
 
     public boolean isOwner(Long memberId) {
