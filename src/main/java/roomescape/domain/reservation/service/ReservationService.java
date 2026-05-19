@@ -8,6 +8,7 @@ import java.util.Objects;
 import java.util.Optional;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import roomescape.domain.reservation.dto.request.AdminReservationCreateRequestDto;
 import roomescape.domain.reservation.dto.request.ReservationCreateRequestDto;
 import roomescape.domain.reservation.dto.request.ReservationUpdateRequestDto;
 import roomescape.domain.reservation.dto.response.ReservationCreateResponseDto;
@@ -44,8 +45,8 @@ public class ReservationService {
     }
 
     @Transactional
-    public List<ReservationResponseDto> getReservationsByName(String name) {
-        List<Reservation> reservations = reservationRepository.findReservationsByName(name);
+    public List<ReservationResponseDto> getReservationsByMemberId(Long memberId) {
+        List<Reservation> reservations = reservationRepository.findReservationsByMemberId(memberId);
         return convertReservationsToDto(reservations);
     }
 
@@ -56,11 +57,24 @@ public class ReservationService {
     }
 
     @Transactional
-    public ReservationCreateResponseDto saveReservation(ReservationCreateRequestDto requestDto,
+    public ReservationCreateResponseDto saveReservation(Long memberId,
+        ReservationCreateRequestDto requestDto,
         LocalDateTime now) {
-        Reservation reservation = createReservation(requestDto, now);
+        Reservation reservation = createReservation(memberId, requestDto.timeId(),
+            requestDto.themeId(), requestDto.date(), now);
         validateDuplicates(requestDto.date(), requestDto.timeId(), requestDto.themeId());
         return ReservationCreateResponseDto.from(reservationRepository.save(reservation));
+    }
+
+    @Transactional
+    public ReservationCreateResponseDto saveAdminReservation(
+        AdminReservationCreateRequestDto request, LocalDateTime now) {
+        Long memberId = request.memberId();
+        Reservation reservation = createReservation(memberId, request.timeId(), request.themeId(),
+            request.date(), now);
+        validateDuplicates(request.date(), request.timeId(), request.themeId());
+        return ReservationCreateResponseDto.from(reservationRepository.save(reservation));
+
     }
 
     private void validateDuplicates(LocalDate date, Long timeId, Long themeId) {
@@ -71,20 +85,20 @@ public class ReservationService {
         }
     }
 
-    private Reservation createReservation(ReservationCreateRequestDto requestDto,
-        LocalDateTime now) {
-        Time time = timeRepository.findTimeById(requestDto.timeId())
+    private Reservation createReservation(Long memberId, Long timeId, Long themeId,
+        LocalDate date, LocalDateTime now) {
+        Time time = timeRepository.findTimeById(timeId)
             .orElseThrow(() -> new BusinessException(ErrorCode.TIME_NOT_FOUND));
-        Theme theme = themeRepository.findThemeById(requestDto.themeId())
+        Theme theme = themeRepository.findThemeById(themeId)
             .orElseThrow(() -> new BusinessException(ErrorCode.THEME_NOT_FOUND));
-        return Reservation.create(requestDto.name(), requestDto.date(), time, theme, now);
+        return Reservation.create(memberId, date, time, theme, now);
     }
 
     @Transactional
-    public void updateReservation(String name, Long id, ReservationUpdateRequestDto requestDto,
+    public void updateReservation(Long memberId, Long id, ReservationUpdateRequestDto requestDto,
         LocalDateTime now) {
         Reservation reservation = getReservationById(id);
-        validateOwner(name, reservation);
+        validateOwner(memberId, reservation);
         Time time = getTimeById(requestDto.timeId());
         validateDuplicatesExceptMe(id, requestDto.date(), requestDto.timeId(),
             reservation.getTheme().getId());
@@ -135,15 +149,15 @@ public class ReservationService {
     }
 
     @Transactional
-    public void deleteMemberReservationById(String name, Long id, LocalDateTime now) {
+    public void deleteMemberReservationById(Long memberId, Long id, LocalDateTime now) {
         Reservation reservation = getReservationById(id);
-        validateOwner(name, reservation);
+        validateOwner(memberId, reservation);
         validateDateAccessable(reservation, now);
         reservationRepository.deleteReservationById(id);
     }
 
-    private void validateOwner(String name, Reservation reservation) {
-        if (!reservation.isOwner(name)) {
+    private void validateOwner(Long memberId, Reservation reservation) {
+        if (!reservation.isOwner(memberId)) {
             throw new BusinessException(ErrorCode.RESERVATION_FORBIDDEN);
         }
     }

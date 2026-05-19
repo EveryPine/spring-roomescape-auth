@@ -1,6 +1,7 @@
 package roomescape.domain.theme.repository;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -23,12 +24,13 @@ public class FakeThemeRepository implements ThemeRepository {
 
     public void saveAllReservations(List<Reservation> reservations) {
         List<Reservation> reconstructedReservations = reservations.stream()
-            .map(reservation -> Reservation.reconstruct(
-                reservationId.addAndGet(1),
-                reservation.getName(),
+            .map(reservation -> Reservation.create(
+                reservation.getMemberId(),
                 reservation.getDate(),
                 reservation.getTime(),
-                reservation.getTheme()))
+                reservation.getTheme(),
+                LocalDateTime.MIN
+            ).withId(reservationId.addAndGet(1)))
             .toList();
         this.reservations.addAll(reconstructedReservations);
     }

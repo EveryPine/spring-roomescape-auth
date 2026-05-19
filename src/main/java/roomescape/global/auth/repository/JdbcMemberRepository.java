@@ -43,6 +43,19 @@ public class JdbcMemberRepository implements MemberRepository {
     }
 
     @Override
+    public Optional<Member> findById(Long id) {
+        String sql = "SELECT id, name, login_id, password, role FROM MEMBER WHERE id = :id";
+        SqlParameterSource parameters = new MapSqlParameterSource("id", id);
+
+        try {
+            Member member = jdbcTemplate.queryForObject(sql, parameters, this::mapMember);
+            return Optional.ofNullable(member);
+        } catch (EmptyResultDataAccessException e) {
+            return Optional.empty();
+        }
+    }
+
+    @Override
     public Optional<Member> findByLoginId(String loginId) {
         String sql = "SELECT id, name, login_id, password, role FROM member WHERE login_id = :loginId";
         SqlParameterSource parameters = new MapSqlParameterSource("loginId", loginId);

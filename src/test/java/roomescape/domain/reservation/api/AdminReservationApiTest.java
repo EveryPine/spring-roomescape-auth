@@ -66,7 +66,7 @@ class AdminReservationApiTest {
                 .header("Authorization", testAuthorizationProvider.bearerToken(Role.ADMIN))
                 .contentType(ContentType.JSON)
                 .body(Map.of(
-                    "name", "시오",
+                    "memberId", 1L,
                     "date", "2026-12-31",
                     "timeId", 1L,
                     "themeId", 1L
@@ -75,17 +75,16 @@ class AdminReservationApiTest {
                 .post("/api/admin/reservations")
                 .then()
                 .statusCode(201)
-                .body("name", equalTo("시오"));
+                .body("memberId", equalTo(1));
         }
 
         @Test
-        @DisplayName("이름이 빈 문자열이면 400을 반환한다.")
+        @DisplayName("예약자 id가 누락되면 400을 반환한다.")
         void 실패1() {
             given()
                 .header("Authorization", testAuthorizationProvider.bearerToken(Role.ADMIN))
                 .contentType(ContentType.JSON)
                 .body(Map.of(
-                    "name", "",
                     "date", "2026-12-31",
                     "timeId", 1L,
                     "themeId", 1L
@@ -94,9 +93,9 @@ class AdminReservationApiTest {
                 .post("/api/admin/reservations")
                 .then()
                 .statusCode(400)
-                .body("errors.field", hasItem("name"))
-                .body("errors.find { it.field == 'name' }.value", equalTo(""))
-                .body("errors.find { it.field == 'name' }.message", equalTo("예약자 이름을 입력해주세요."));
+                .body("errors.field", hasItem("memberId"))
+                .body("errors.find { it.field == 'memberId' }.value", nullValue())
+                .body("errors.find { it.field == 'memberId' }.message", equalTo("예약자 id를 입력해주세요."));
         }
 
         @Test
@@ -106,7 +105,7 @@ class AdminReservationApiTest {
                 .header("Authorization", testAuthorizationProvider.bearerToken(Role.ADMIN))
                 .contentType(ContentType.JSON)
                 .body(Map.of(
-                    "name", "시오",
+                    "memberId", 1L,
                     "date", "2026-12-31",
                     "timeId", 1L
                 ))
@@ -128,7 +127,7 @@ class AdminReservationApiTest {
                 .header("Authorization", testAuthorizationProvider.bearerToken(Role.ADMIN))
                 .contentType(ContentType.JSON)
                 .body(Map.of(
-                    "name", "시오",
+                    "memberId", 1L,
                     "date", wrongDate,
                     "timeId", 1L,
                     "themeId", 1L
@@ -166,7 +165,7 @@ class AdminReservationApiTest {
             .header("Authorization", testAuthorizationProvider.bearerToken(Role.ADMIN))
             .contentType(ContentType.JSON)
             .body(Map.of(
-                "name", "시오",
+                "memberId", 1L,
                 "date", "2026-12-31",
                 "timeId", 1L,
                 "themeId", 1L

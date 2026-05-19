@@ -83,7 +83,7 @@ class ThemeServiceTest {
 
                 for (int j = 0; j < reservationCount; j++) {
                     reservations.add(Reservation.create(
-                        "예약자" + j,
+                        (long) j + 1,
                         targetDate,
                         Time.reconstruct(1L, LocalTime.of(10, 0)),
                         theme,
@@ -221,7 +221,8 @@ class ThemeServiceTest {
             Theme theme = themeRepository.save(Theme.create("테마명", "테마 설명",
                 "https://roomescape.com/images/themes/prison-room.png"));
             reservationRepository.save(
-                Reservation.create("브라운", LocalDate.of(2026, 5, 12), time, theme, LocalDateTime.of(2026, 1, 1, 0, 0)));
+                Reservation.create(1L, LocalDate.of(2026, 5, 12), time, theme,
+                    LocalDateTime.of(2026, 1, 1, 0, 0)));
             Long referencedId = theme.getId();
 
             assertThatThrownBy(() -> themeService.deleteThemeById(referencedId))

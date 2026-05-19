@@ -1,14 +1,12 @@
 package roomescape.domain.reservation.api;
 
 import static io.restassured.RestAssured.given;
-import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.nullValue;
 
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
-import java.net.URLEncoder;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -49,27 +47,25 @@ class ReservationApiTest {
         @Test
         @DisplayName("예약을 조회한다.")
         void 성공() {
-            createReservation("브라운", "2026-12-31", 1L, 1L);
+            createReservation("2026-12-31", 1L, 1L);
 
             given()
                 .header("Authorization", testAuthorizationProvider.bearerToken(Role.USER))
-                .header("Reservation-Name", URLEncoder.encode("브라운", UTF_8))
                 .when()
                 .get("/api/reservations")
                 .then()
                 .statusCode(200)
-                .body("name", hasItem("브라운"));
+                .body("date", hasItem("2026-12-31"));
         }
 
         @Test
-        @DisplayName("헤더가 없으면 400을 반환한다.")
+        @DisplayName("인증 헤더가 없으면 401을 반환한다.")
         void 실패1() {
             given()
-                .header("Authorization", testAuthorizationProvider.bearerToken(Role.USER))
                 .when()
                 .get("/api/reservations")
                 .then()
-                .statusCode(400);
+                .statusCode(401);
         }
     }
 
@@ -84,7 +80,6 @@ class ReservationApiTest {
                 .header("Authorization", testAuthorizationProvider.bearerToken(Role.USER))
                 .contentType(ContentType.JSON)
                 .body(Map.of(
-                    "name", "브라운",
                     "date", "2026-12-31",
                     "timeId", 1L,
                     "themeId", 1L
@@ -93,18 +88,16 @@ class ReservationApiTest {
                 .post("/api/reservations")
                 .then()
                 .statusCode(201)
-                .body("name", equalTo("브라운"));
+                .body("memberId", equalTo(1));
         }
 
         @Test
-        @DisplayName("이름이 빈 문자열이면 400을 반환한다.")
+        @DisplayName("예약 날짜가 누락되면 400을 반환한다.")
         void 실패1() {
             given()
                 .header("Authorization", testAuthorizationProvider.bearerToken(Role.USER))
                 .contentType(ContentType.JSON)
                 .body(Map.of(
-                    "name", "",
-                    "date", "2026-12-31",
                     "timeId", 1L,
                     "themeId", 1L
                 ))
@@ -112,9 +105,9 @@ class ReservationApiTest {
                 .post("/api/reservations")
                 .then()
                 .statusCode(400)
-                .body("errors.field", hasItem("name"))
-                .body("errors.find { it.field == 'name' }.value", equalTo(""))
-                .body("errors.find { it.field == 'name' }.message", equalTo("예약자 이름을 입력해주세요."));
+                .body("errors.field", hasItem("date"))
+                .body("errors.find { it.field == 'date' }.value", nullValue())
+                .body("errors.find { it.field == 'date' }.message", equalTo("예약 날짜를 입력해주세요."));
         }
 
         @Test
@@ -124,7 +117,6 @@ class ReservationApiTest {
                 .header("Authorization", testAuthorizationProvider.bearerToken(Role.USER))
                 .contentType(ContentType.JSON)
                 .body(Map.of(
-                    "name", "브라운",
                     "date", "2026-12-31",
                     "timeId", 1L
                 ))
@@ -146,7 +138,6 @@ class ReservationApiTest {
                 .header("Authorization", testAuthorizationProvider.bearerToken(Role.USER))
                 .contentType(ContentType.JSON)
                 .body(Map.of(
-                    "name", "브라운",
                     "date", wrongDate,
                     "timeId", 1L,
                     "themeId", 1L
@@ -168,11 +159,10 @@ class ReservationApiTest {
         @Test
         @DisplayName("정상 요청이면 204를 반환한다.")
         void 성공() {
-            Long id = createReservation("브라운", "2026-12-30", 1L, 1L);
+            Long id = createReservation("2026-12-30", 1L, 1L);
 
             given()
                 .header("Authorization", testAuthorizationProvider.bearerToken(Role.USER))
-                .header("Reservation-Name", URLEncoder.encode("브라운", UTF_8))
                 .contentType(ContentType.JSON)
                 .body(Map.of(
                     "date", "2026-12-31",
@@ -185,12 +175,11 @@ class ReservationApiTest {
         }
 
         @Test
-        @DisplayName("헤더가 없으면 400을 반환한다.")
+        @DisplayName("인증 헤더가 없으면 401을 반환한다.")
         void 실패1() {
-            Long id = createReservation("브라운", "2026-12-30", 1L, 1L);
+            Long id = createReservation("2026-12-30", 1L, 1L);
 
             given()
-                .header("Authorization", testAuthorizationProvider.bearerToken(Role.USER))
                 .contentType(ContentType.JSON)
                 .body(Map.of(
                     "date", "2026-12-31",
@@ -199,7 +188,7 @@ class ReservationApiTest {
                 .when()
                 .patch("/api/reservations/{id}", id)
                 .then()
-                .statusCode(400);
+                .statusCode(401);
         }
 
         @Test
@@ -209,7 +198,6 @@ class ReservationApiTest {
 
             given()
                 .header("Authorization", testAuthorizationProvider.bearerToken(Role.USER))
-                .header("Reservation-Name", URLEncoder.encode("브라운", UTF_8))
                 .contentType(ContentType.JSON)
                 .body(Map.of(
                     "timeId", 2L
@@ -227,11 +215,10 @@ class ReservationApiTest {
         @Test
         @DisplayName("요청 본문 필드 중 하나가 누락되면 400을 반환한다.")
         void 실패3() {
-            Long id = createReservation("브라운", "2026-12-30", 1L, 1L);
+            Long id = createReservation("2026-12-30", 1L, 1L);
 
             given()
                 .header("Authorization", testAuthorizationProvider.bearerToken(Role.USER))
-                .header("Reservation-Name", URLEncoder.encode("브라운", UTF_8))
                 .contentType(ContentType.JSON)
                 .body(Map.of(
                     "timeId", 2L
@@ -248,12 +235,11 @@ class ReservationApiTest {
         @Test
         @DisplayName("날짜 형식이 잘못되면 400을 반환한다.")
         void 실패4() {
-            Long id = createReservation("브라운", "2026-12-30", 1L, 1L);
+            Long id = createReservation("2026-12-30", 1L, 1L);
             String wrongDate = "2026/12/31";
 
             given()
                 .header("Authorization", testAuthorizationProvider.bearerToken(Role.USER))
-                .header("Reservation-Name", URLEncoder.encode("브라운", UTF_8))
                 .contentType(ContentType.JSON)
                 .body(Map.of(
                     "date", wrongDate,
@@ -276,11 +262,10 @@ class ReservationApiTest {
         @Test
         @DisplayName("정상 요청이면 204를 반환한다.")
         void 성공() {
-            Long id = createReservation("브라운", "2026-12-31", 1L, 1L);
+            Long id = createReservation("2026-12-31", 1L, 1L);
 
             given()
                 .header("Authorization", testAuthorizationProvider.bearerToken(Role.USER))
-                .header("Reservation-Name", URLEncoder.encode("브라운", UTF_8))
                 .when()
                 .delete("/api/reservations/{id}", id)
                 .then()
@@ -288,25 +273,23 @@ class ReservationApiTest {
         }
 
         @Test
-        @DisplayName("헤더가 없으면 400을 반환한다.")
+        @DisplayName("인증 헤더가 없으면 401을 반환한다.")
         void 실패1() {
-            Long id = createReservation("브라운", "2026-12-31", 1L, 1L);
+            Long id = createReservation("2026-12-31", 1L, 1L);
 
             given()
-                .header("Authorization", testAuthorizationProvider.bearerToken(Role.USER))
                 .when()
                 .delete("/api/reservations/{id}", id)
                 .then()
-                .statusCode(400);
+                .statusCode(401);
         }
     }
 
-    private Long createReservation(String name, String date, Long timeId, Long themeId) {
+    private Long createReservation(String date, Long timeId, Long themeId) {
         return given()
             .header("Authorization", testAuthorizationProvider.bearerToken(Role.USER))
             .contentType(ContentType.JSON)
             .body(Map.of(
-                "name", name,
                 "date", date,
                 "timeId", timeId,
                 "themeId", themeId
@@ -315,7 +298,7 @@ class ReservationApiTest {
             .post("/api/reservations")
             .then()
             .statusCode(201)
-            .body("name", equalTo(name))
+            .body("memberId", equalTo(1))
             .extract()
             .jsonPath()
             .getLong("id");

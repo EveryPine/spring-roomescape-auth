@@ -104,16 +104,16 @@ class TimeServiceTest {
             ));
 
             reservationRepository.save(
-                Reservation.create("브라이언", LocalDate.of(2026, 5, 10), time1, theme1,
+                Reservation.create(1L, LocalDate.of(2026, 5, 10), time1, theme1,
                     LocalDateTime.of(2026, 1, 1, 0, 0)));
             reservationRepository.save(
-                Reservation.create("제이슨", LocalDate.of(2026, 5, 10), time2, theme2,
+                Reservation.create(2L, LocalDate.of(2026, 5, 10), time2, theme2,
                     LocalDateTime.of(2026, 1, 1, 0, 0)));
             reservationRepository.save(
-                Reservation.create("앨리스", LocalDate.of(2026, 5, 11), time3, theme3,
+                Reservation.create(3L, LocalDate.of(2026, 5, 11), time3, theme3,
                     LocalDateTime.of(2026, 1, 1, 0, 0)));
             reservationRepository.save(
-                Reservation.create("데이브", LocalDate.of(2026, 5, 11), time4, theme1,
+                Reservation.create(4L, LocalDate.of(2026, 5, 11), time4, theme1,
                     LocalDateTime.of(2026, 1, 1, 0, 0)));
 
             LocalDate date = LocalDate.of(2026, 5, 10);
@@ -221,7 +221,7 @@ class TimeServiceTest {
             Time time = timeRepository.save(Time.create(LocalTime.of(12, 0)));
             Theme theme = themeRepository.save(Theme.create("테마명", "테마 설명", "썸네일 Url"));
             reservationRepository.save(
-                Reservation.create("브라운", LocalDate.of(2026, 5, 12), time, theme,
+                Reservation.create(1L, LocalDate.of(2026, 5, 12), time, theme,
                     LocalDateTime.of(2026, 1, 1, 0, 0)));
 
             assertThatThrownBy(() -> timeService.deleteTimeById(time.getId()))

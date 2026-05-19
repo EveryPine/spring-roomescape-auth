@@ -1,6 +1,7 @@
 package roomescape.domain.reservation.repository;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -21,9 +22,9 @@ public class FakeReservationRepository implements ReservationRepository {
     }
 
     @Override
-    public List<Reservation> findReservationsByName(String name) {
+    public List<Reservation> findReservationsByMemberId(Long memberId) {
         return reservations.stream()
-            .filter(reservation -> reservation.getName().equals(name))
+            .filter(reservation -> reservation.getMemberId().equals(memberId))
             .toList();
     }
 
@@ -56,10 +57,13 @@ public class FakeReservationRepository implements ReservationRepository {
 
     @Override
     public Reservation save(Reservation reservation) {
-        Reservation savedReservation = Reservation.reconstruct(id.addAndGet(1), reservation.getName(),
+        Reservation savedReservation = Reservation.create(
+            reservation.getMemberId(),
             reservation.getDate(),
             reservation.getTime(),
-            reservation.getTheme());
+            reservation.getTheme(),
+            LocalDateTime.MIN
+        ).withId(id.addAndGet(1));
         reservations.add(savedReservation);
         return savedReservation;
     }
@@ -86,13 +90,13 @@ public class FakeReservationRepository implements ReservationRepository {
             }
 
             Time time = reservation.getTime();
-            Reservation updatedReservation = Reservation.reconstruct(
-                reservation.getId(),
-                reservation.getName(),
+            Reservation updatedReservation = Reservation.create(
+                reservation.getMemberId(),
                 date,
                 Time.reconstruct(timeId, time.getStartAt()),
-                reservation.getTheme()
-            );
+                reservation.getTheme(),
+                LocalDateTime.MIN
+            ).withId(reservation.getId());
             reservations.set(i, updatedReservation);
             return;
         }

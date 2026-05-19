@@ -14,6 +14,7 @@ public enum ErrorCode {
     AUTH_UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "인증되지 않은 이용자입니다."),
     AUTH_FORBIDDEN(HttpStatus.FORBIDDEN, "접근할 권한이 없습니다."),
 
+    MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "요청한 이용자가 존재하지 않습니다."),
     MEMBER_DUPLICATE(HttpStatus.CONFLICT, "이미 존재하는 이용자입니다."),
 
     RESERVATION_FORBIDDEN(HttpStatus.FORBIDDEN, "요청한 예약에 접근할 권한이 없습니다."),

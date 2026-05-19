@@ -24,6 +24,7 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
         Object handler) {
         String accessToken = authenticationExtractor.extract(request);
         Claims claims = jwtProvider.validateToken(accessToken);
+        request.setAttribute("memberId", Long.valueOf(claims.getSubject()));
         request.setAttribute("role", Role.valueOf((String) claims.get("role")));
 
         return true;

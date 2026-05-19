@@ -3,6 +3,7 @@ package roomescape.domain.reservation.repository;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Map;
@@ -28,14 +29,14 @@ public class JdbcReservationRepository implements ReservationRepository {
         this.jdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
         this.simpleJdbcInsert = new SimpleJdbcInsert(dataSource)
             .withTableName("reservation")
-            .usingColumns("name", "date", "time_id", "theme_id")
+            .usingColumns("member_id", "date", "time_id", "theme_id")
             .usingGeneratedKeyColumns("id");
     }
 
     @Override
     public List<Reservation> findAllReservations() {
         String sql = """
-            SELECT r.id, r.name, r.date, rt.id AS time_id, rt.start_at, t.id AS theme_id, t.name AS theme_name, t.description, t.image_url
+            SELECT r.id, r.member_id, r.date, rt.id AS time_id, rt.start_at, t.id AS theme_id, t.name AS theme_name, t.description, t.image_url
             FROM reservation r
             JOIN reservation_time rt ON r.time_id = rt.id
             JOIN theme t ON r.theme_id = t.id
@@ -44,15 +45,15 @@ public class JdbcReservationRepository implements ReservationRepository {
     }
 
     @Override
-    public List<Reservation> findReservationsByName(String name) {
+    public List<Reservation> findReservationsByMemberId(Long memberId) {
         String sql = """
-            SELECT r.id, r.name, r.date, rt.id AS time_id, rt.start_at, t.id AS theme_id, t.name AS theme_name, t.description, t.image_url
+            SELECT r.id, r.member_id, r.date, rt.id AS time_id, rt.start_at, t.id AS theme_id, t.name AS theme_name, t.description, t.image_url
             FROM reservation r
             JOIN reservation_time rt ON r.time_id = rt.id
             JOIN theme t ON r.theme_id = t.id
-            WHERE r.name = :name
+            WHERE r.member_id = :memberId
             """;
-        SqlParameterSource parameters = new MapSqlParameterSource("name", name);
+        SqlParameterSource parameters = new MapSqlParameterSource("memberId", memberId);
 
         return jdbcTemplate.query(sql, parameters, this::mapReservation);
     }
@@ -60,7 +61,7 @@ public class JdbcReservationRepository implements ReservationRepository {
     @Override
     public Optional<Reservation> findReservationById(Long id) {
         String sql = """
-            SELECT r.id, r.name, r.date, rt.id AS time_id, rt.start_at, t.id AS theme_id, t.name AS theme_name, t.description, t.image_url
+            SELECT r.id, r.member_id, r.date, rt.id AS time_id, rt.start_at, t.id AS theme_id, t.name AS theme_name, t.description, t.image_url
             FROM reservation r
             JOIN reservation_time rt ON r.time_id = rt.id
             JOIN theme t ON r.theme_id = t.id
@@ -80,7 +81,7 @@ public class JdbcReservationRepository implements ReservationRepository {
     public Optional<Reservation> findReservationByDateTimeAndThemeId(LocalDate date, Long timeId,
         Long themeId) {
         String sql = """
-            SELECT r.id, r.name, r.date, rt.id AS time_id, rt.start_at, t.id AS theme_id, t.name AS theme_name, t.description, t.image_url
+            SELECT r.id, r.member_id, r.date, rt.id AS time_id, rt.start_at, t.id AS theme_id, t.name AS theme_name, t.description, t.image_url
             FROM reservation r
             JOIN reservation_time rt ON r.time_id = rt.id
             JOIN theme t ON r.theme_id = t.id
@@ -117,16 +118,14 @@ public class JdbcReservationRepository implements ReservationRepository {
     @Override
     public Reservation save(Reservation reservation) {
         Map<String, Object> args = Map.of(
-            "name", reservation.getName(),
+            "member_id", reservation.getMemberId(),
             "date", reservation.getDate(),
             "time_id", reservation.getTime().getId(),
             "theme_id", reservation.getTheme().getId()
         );
         Long generatedKey = simpleJdbcInsert.executeAndReturnKey(args).longValue();
 
-        return Reservation.reconstruct(generatedKey, reservation.getName(), reservation.getDate(),
-            reservation.getTime(),
-            reservation.getTheme());
+        return reservation.withId(generatedKey);
     }
 
     @Override
@@ -165,9 +164,8 @@ public class JdbcReservationRepository implements ReservationRepository {
     }
 
     private Reservation mapReservation(ResultSet resultSet, int rowNum) throws SQLException {
-        return Reservation.reconstruct(
-            resultSet.getLong("id"),
-            resultSet.getString("name"),
+        return Reservation.create(
+            resultSet.getLong("member_id"),
             resultSet.getDate("date").toLocalDate(),
             Time.reconstruct(
                 resultSet.getLong("time_id"),
@@ -178,7 +176,8 @@ public class JdbcReservationRepository implements ReservationRepository {
                 resultSet.getString("theme_name"),
                 resultSet.getString("description"),
                 resultSet.getString("image_url")
-            )
-        );
+            ),
+            LocalDateTime.MIN
+        ).withId(resultSet.getLong("id"));
     }
 }

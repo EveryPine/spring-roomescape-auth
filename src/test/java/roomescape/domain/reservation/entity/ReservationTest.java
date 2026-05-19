@@ -27,7 +27,7 @@ class ReservationTest {
             Time time = Time.create(LocalTime.of(20, 30));
             Theme theme = Theme.create("성", "성 테마 설명", "castle_image_url");
 
-            assertThatCode(() -> Reservation.create("브라운", date, time, theme,
+            assertThatCode(() -> Reservation.create(1L, date, time, theme,
                 LocalDateTime.of(2026, 1, 1, 0, 0)))
                 .doesNotThrowAnyException();
         }
@@ -39,7 +39,7 @@ class ReservationTest {
             Time time = Time.create(LocalTime.of(20, 30));
             Theme theme = Theme.create("성", "성 테마 설명", "castle_image_url");
 
-            assertThatThrownBy(() -> Reservation.create("브라운", date, time, theme,
+            assertThatThrownBy(() -> Reservation.create(1L, date, time, theme,
                 LocalDateTime.now().minusDays(1)))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
@@ -53,7 +53,7 @@ class ReservationTest {
             Time time = Time.create(LocalTime.of(10, 0));
             Theme theme = Theme.create("성", "성 테마 설명", "castle_image_url");
 
-            assertThatThrownBy(() -> Reservation.create("브라운", date, time, theme,
+            assertThatThrownBy(() -> Reservation.create(1L, date, time, theme,
                 LocalDateTime.now().minusHours(1)))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")

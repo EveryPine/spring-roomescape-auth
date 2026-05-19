@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import roomescape.domain.reservation.dto.request.ReservationCreateRequestDto;
+import roomescape.domain.reservation.dto.request.AdminReservationCreateRequestDto;
 import roomescape.domain.reservation.dto.response.ReservationCreateResponseDto;
 import roomescape.domain.reservation.dto.response.ReservationResponseDto;
 import roomescape.domain.reservation.service.ReservationService;
@@ -38,9 +38,9 @@ public class AdminReservationController {
 
     @PostMapping()
     public ResponseEntity<ReservationCreateResponseDto> saveReservation(
-        @Valid @RequestBody ReservationCreateRequestDto requestDto) {
+        @Valid @RequestBody AdminReservationCreateRequestDto requestDto) {
         return ResponseEntity.status(HttpStatus.CREATED)
-            .body(reservationService.saveReservation(requestDto, LocalDateTime.now()));
+            .body(reservationService.saveAdminReservation(requestDto, LocalDateTime.now()));
     }
 
     @DeleteMapping("/{id}")

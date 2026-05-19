@@ -4,43 +4,45 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Objects;
-import roomescape.global.error.exception.BusinessException;
-import roomescape.global.error.ErrorCode;
 import roomescape.domain.theme.entity.Theme;
 import roomescape.domain.time.entity.Time;
+import roomescape.global.error.ErrorCode;
+import roomescape.global.error.exception.BusinessException;
 
 public class Reservation {
 
     private final Long id;
-    private final String name;
+    private final Long memberId;
     private final LocalDate date;
     private final Time time;
     private final Theme theme;
 
-    private Reservation(Long id, String name, LocalDate date, Time time, Theme theme, LocalDateTime now) {
+    private Reservation(Long id, Long memberId, LocalDate date, Time time, Theme theme,
+        LocalDateTime now) {
         validateDateTime(date, time, now);
         this.id = id;
-        this.name = name;
+        this.memberId = memberId;
         this.date = date;
         this.time = time;
         this.theme = theme;
     }
 
-    private Reservation(Long id, String name, LocalDate date, Time time, Theme theme) {
+    private Reservation(Long id, Long memberId, LocalDate date, Time time, Theme theme) {
         this.id = id;
-        this.name = name;
+        this.memberId = memberId;
         this.date = date;
         this.time = time;
         this.theme = theme;
     }
 
 
-    public static Reservation create(String name, LocalDate date, Time time, Theme theme, LocalDateTime now) {
-        return new Reservation(null, name, date, time, theme, now);
+    public static Reservation create(Long memberId, LocalDate date, Time time,
+        Theme theme, LocalDateTime now) {
+        return new Reservation(null, memberId, date, time, theme, now);
     }
 
-    public static Reservation reconstruct(Long id, String name, LocalDate date, Time time, Theme theme) {
-        return new Reservation(id, name, date, time, theme);
+    public Reservation withId(Long id) {
+        return new Reservation(id, this.memberId, this.date, this.time, this.theme);
     }
 
     private void validateDateTime(LocalDate date, Time time, LocalDateTime now) {
@@ -50,10 +52,6 @@ public class Reservation {
         if (date.isBefore(nowDate) || (date.isEqual(nowDate) && time.isPast(nowTime))) {
             throw new BusinessException(ErrorCode.RESERVATION_ALREADY_PASSED);
         }
-    }
-
-    public boolean isOwner(String name) {
-        return this.name.equals(name);
     }
 
     public boolean isPast(LocalDateTime now) {
@@ -67,8 +65,12 @@ public class Reservation {
         return id;
     }
 
-    public String getName() {
-        return name;
+    public Long getMemberId() {
+        return memberId;
+    }
+
+    public boolean isOwner(Long memberId) {
+        return Objects.equals(this.memberId, memberId);
     }
 
     public LocalDate getDate() {
