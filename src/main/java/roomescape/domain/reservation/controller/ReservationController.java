@@ -41,9 +41,10 @@ public class ReservationController {
             .body(reservationService.getReservationsByMemberId(member.getId()));
     }
 
-    @PostMapping()
+    @PostMapping
     public ResponseEntity<ReservationCreateResponseDto> saveReservation(
-        @Valid @RequestBody ReservationCreateRequestDto requestDto, @LoginMember Member member) {
+        @LoginMember Member member,
+        @Valid @RequestBody ReservationCreateRequestDto requestDto) {
         return ResponseEntity.status(HttpStatus.CREATED)
             .body(reservationService.saveReservation(member.getId(), requestDto,
                 LocalDateTime.now()));

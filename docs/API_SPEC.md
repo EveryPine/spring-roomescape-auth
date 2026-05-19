@@ -26,7 +26,7 @@ POST /api/members
 ```json
 {
   "name": "브라운",
-  "memberId": "memberId123",
+  "loginId": "memberId123",
   "password": "password123!"
 }
 ```
@@ -39,7 +39,7 @@ POST /api/members
 {
   "id": 1,
   "name": "브라운",
-  "memberId": "memberId123"
+  "loginId": "memberId123"
 }
 ```
 
@@ -110,7 +110,7 @@ POST /api/admin/reservations
 
 ```json
 {
-  "name": "서여",
+  "memberId": 1,
   "date": "2026-05-04",
   "timeId": 1,
   "themeId": 1
@@ -188,7 +188,6 @@ GET /api/admin/reservations
 [
   {
     "id": 1,
-    "name": "브라운",
     "date": "2026-05-04",
     "time": {
       "id": 2,
@@ -203,7 +202,6 @@ GET /api/admin/reservations
   },
   {
     "id": 2,
-    "name": "네오",
     "date": "2026-05-06",
     "time": {
       "id": 2,
@@ -634,7 +632,7 @@ POST /api/reservations
 ```json
 {
   "id": 1,
-  "name": "브라운",
+  "memberId": 1,
   "date": "2026-05-12",
   "timeId": 1,
   "themeId": 1

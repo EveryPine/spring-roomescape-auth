@@ -44,16 +44,16 @@
 
 ### 관리자 API
 
-| API   | Method | Path                           | 성공 응답          | 주요 실패 응답           | 상세                               |
-|-------|--------|--------------------------------|----------------|--------------------|----------------------------------|
-| 예약 생성 | POST   | `/api/admin/reservations`      | 201 Created    | 400, 401, 409, 422 | [상세](docs/API_SPEC.md#관리자-예약-생성) |
-| 예약 조회 | GET    | `/api/admin/reservations`      | 200 OK         | 401                | [상세](docs/API_SPEC.md#관리자-예약-조회) |
-| 예약 삭제 | DELETE | `/api/admin/reservations/{id}` | 204 No Content | 400, 401, 404      | [상세](docs/API_SPEC.md#관리자-예약-삭제) |
-| 시간 조회 | GET    | `/api/admin/times`             | 200 OK         | 401                | [상세](docs/API_SPEC.md#관리자-시간-조회) |
-| 시간 생성 | POST   | `/api/admin/times`             | 201 Created    | 400, 401, 409      | [상세](docs/API_SPEC.md#관리자-시간-생성) |
-| 시간 삭제 | DELETE | `/api/admin/times/{id}`        | 204 No Content | 400, 401, 404, 409 | [상세](docs/API_SPEC.md#관리자-시간-삭제) |
-| 테마 추가 | POST   | `/api/admin/themes`            | 201 Created    | 400, 401, 409      | [상세](docs/API_SPEC.md#관리자-테마-추가) |
-| 테마 삭제 | DELETE | `/api/admin/themes/{id}`       | 204 No Content | 400, 401, 404, 409 | [상세](docs/API_SPEC.md#관리자-테마-삭제) |
+| API   | Method | Path                           | 성공 응답          | 주요 실패 응답                | 상세                               |
+|-------|--------|--------------------------------|----------------|-------------------------|----------------------------------|
+| 예약 생성 | POST   | `/api/admin/reservations`      | 201 Created    | 400, 403, 401, 409, 422 | [상세](docs/API_SPEC.md#관리자-예약-생성) |
+| 예약 조회 | GET    | `/api/admin/reservations`      | 200 OK         | 401  403                | [상세](docs/API_SPEC.md#관리자-예약-조회) |
+| 예약 삭제 | DELETE | `/api/admin/reservations/{id}` | 204 No Content | 400, 403, 401, 404      | [상세](docs/API_SPEC.md#관리자-예약-삭제) |
+| 시간 조회 | GET    | `/api/admin/times`             | 200 OK         | 401, 403                | [상세](docs/API_SPEC.md#관리자-시간-조회) |
+| 시간 생성 | POST   | `/api/admin/times`             | 201 Created    | 400, 401, 403, 409      | [상세](docs/API_SPEC.md#관리자-시간-생성) |
+| 시간 삭제 | DELETE | `/api/admin/times/{id}`        | 204 No Content | 400, 401, 403, 404, 409 | [상세](docs/API_SPEC.md#관리자-시간-삭제) |
+| 테마 추가 | POST   | `/api/admin/themes`            | 201 Created    | 400, 401, 403, 409      | [상세](docs/API_SPEC.md#관리자-테마-추가) |
+| 테마 삭제 | DELETE | `/api/admin/themes/{id}`       | 204 No Content | 400, 401, 403, 404, 409 | [상세](docs/API_SPEC.md#관리자-테마-삭제) |
 
 ### 사용자 API
 

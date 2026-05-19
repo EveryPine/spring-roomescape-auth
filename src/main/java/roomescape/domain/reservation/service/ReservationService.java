@@ -88,9 +88,16 @@ public class ReservationService {
     private Reservation createReservation(Long memberId, Long timeId, Long themeId,
         LocalDate date, LocalDateTime now) {
         Time time = timeRepository.findTimeById(timeId)
-            .orElseThrow(() -> new BusinessException(ErrorCode.TIME_NOT_FOUND));
+            .orElseThrow(() -> new BusinessException(
+                ErrorCode.COMMON_INVALID_REQUEST_BODY,
+                ErrorDetail.of("timeId",
+                    "요청한 시간 id가 존재하지 않습니다.")
+            ));
         Theme theme = themeRepository.findThemeById(themeId)
-            .orElseThrow(() -> new BusinessException(ErrorCode.THEME_NOT_FOUND));
+            .orElseThrow(() -> new BusinessException(
+                ErrorCode.COMMON_INVALID_REQUEST_BODY,
+                ErrorDetail.of("themeId", "요청한 테마 id가 존재하지 않습니다.")
+            ));
         return Reservation.create(memberId, date, time, theme, now);
     }
 
