@@ -1,0 +1,54 @@
+package roomescape.domain.reservation.controller;
+
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
+import java.time.LocalDateTime;
+import java.util.List;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+import roomescape.domain.reservation.dto.request.ReservationCreateRequestDto;
+import roomescape.domain.reservation.dto.response.ReservationCreateResponseDto;
+import roomescape.domain.reservation.dto.response.ReservationResponseDto;
+import roomescape.domain.reservation.service.ReservationService;
+
+@RestController
+@RequestMapping("/api/admin/reservations")
+@Validated
+public class AdminReservationController {
+
+    private final ReservationService reservationService;
+
+    public AdminReservationController(ReservationService reservationService) {
+        this.reservationService = reservationService;
+    }
+
+    @GetMapping()
+    public ResponseEntity<List<ReservationResponseDto>> getReservations() {
+        return ResponseEntity.status(HttpStatus.OK)
+            .body(reservationService.getReservations());
+    }
+
+    @PostMapping()
+    public ResponseEntity<ReservationCreateResponseDto> saveReservation(
+        @Valid @RequestBody ReservationCreateRequestDto requestDto) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+            .body(reservationService.saveReservation(requestDto, LocalDateTime.now()));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteReservation(
+        @PathVariable @Min(value = 1, message = "예약 id는 1 이상이어야 합니다.") Long id) {
+        reservationService.deleteReservationById(id);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT)
+            .build();
+    }
+
+}
