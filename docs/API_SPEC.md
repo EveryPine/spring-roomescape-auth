@@ -17,7 +17,7 @@ Refresh token은 사용하지 않습니다. 로그아웃은 서버가 별도 ref
 #### URL
 
 ```http
-POST /api/admin/login
+POST /api/auth/admin/login
 ```
 
 #### Query Parameters
@@ -55,7 +55,7 @@ POST /api/admin/login
 #### URL
 
 ```http
-POST /api/admin/logout
+POST /api/admin/auth/logout
 ```
 
 #### Headers
@@ -131,7 +131,7 @@ POST /api/members
 #### URL
 
 ```http
-POST /api/members/login
+POST /api/auth/login
 ```
 
 #### Query Parameters
@@ -169,7 +169,7 @@ POST /api/members/login
 #### URL
 
 ```http
-POST /api/members/logout
+POST /api/auth/logout
 ```
 
 #### Headers
