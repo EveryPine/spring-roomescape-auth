@@ -7,82 +7,7 @@ README의 API 요약 표에서 연결되는 상세 명세입니다.
 인증이 필요한 API는 JWT access token을 사용합니다. 로그인 성공 시 응답되는 `token`을 `Authorization: Bearer {token}` 헤더에 담아
 요청합니다.
 
-Refresh token은 사용하지 않습니다. 로그아웃은 서버가 별도 refresh token을 폐기하지 않으며, 클라이언트가 보관 중인 `token`을 삭제하는 방식으로
-처리합니다.
-
 관리자 API는 관리자 `token`이 필요합니다. 사용자 예약 조회, 생성, 수정, 취소 API는 사용자 `token`이 필요합니다.
-
-### 관리자 로그인
-
-#### URL
-
-```http
-POST /api/auth/admin/login
-```
-
-#### Query Parameters
-
-없음
-
-#### Request Body
-
-```json
-{
-  "memberId": "memberId123",
-  "password": "password123!"
-}
-```
-
-#### Response Body - Success
-
-##### 200 OK
-
-```json
-{
-  "token": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhZG1pbiIsInJvbGUiOiJBRE1JTiJ9.signature"
-}
-```
-
-#### Response Body - Failure
-
-| 상태 코드 | 메시지             | 설명                        |
-|:-----:|:----------------|:--------------------------|
-| `400` | 요청 형식이 잘못되었습니다. | 데이터 형식이 틀리거나 필수 값이 누락된 경우 |
-| `401` | 인증에 실패했습니다.     | 아이디 또는 비밀번호가 일치하지 않는 경우   |
-
-### 관리자 로그아웃
-
-#### URL
-
-```http
-POST /api/admin/auth/logout
-```
-
-#### Headers
-
-| 헤더명             | 타입     | 설명               | 필수 여부 |
-|:----------------|:-------|:-----------------|:------|
-| `Authorization` | String | `Bearer {token}` | O     |
-
-#### Query Parameters
-
-없음
-
-#### Request Body
-
-없음
-
-#### Response Body - Success
-
-##### 204 No Content
-
-없음
-
-#### Response Body - Failure
-
-| 상태 코드 | 메시지        | 설명                        |
-|:-----:|:-----------|:--------------------------|
-| `401` | 인증이 필요합니다. | 토큰이 없거나 만료되었거나 유효하지 않은 경우 |
 
 ### 사용자 회원가입
 
@@ -114,8 +39,7 @@ POST /api/members
 {
   "id": 1,
   "name": "브라운",
-  "memberId": "memberId123",
-  "password": "password123!"
+  "memberId": "memberId123"
 }
 ```
 
@@ -126,7 +50,7 @@ POST /api/members
 | `400` | 요청 형식이 잘못되었습니다. | 데이터 형식이 틀리거나 필수 값이 누락된 경우 |
 | `409` | 이미 존재하는 회원입니다.  | 같은 아이디를 가진 회원이 이미 존재하는 경우 |
 
-### 사용자 로그인
+### 로그인
 
 #### URL
 
@@ -163,40 +87,6 @@ POST /api/auth/login
 |:-----:|:----------------|:--------------------------|
 | `400` | 요청 형식이 잘못되었습니다. | 데이터 형식이 틀리거나 필수 값이 누락된 경우 |
 | `401` | 인증에 실패했습니다.     | 아이디 또는 비밀번호가 일치하지 않는 경우   |
-
-### 사용자 로그아웃
-
-#### URL
-
-```http
-POST /api/auth/logout
-```
-
-#### Headers
-
-| 헤더명             | 타입     | 설명               | 필수 여부 |
-|:----------------|:-------|:-----------------|:------|
-| `Authorization` | String | `Bearer {token}` | O     |
-
-#### Query Parameters
-
-없음
-
-#### Request Body
-
-없음
-
-#### Response Body - Success
-
-##### 204 No Content
-
-없음
-
-#### Response Body - Failure
-
-| 상태 코드 | 메시지        | 설명                        |
-|:-----:|:-----------|:--------------------------|
-| `401` | 인증이 필요합니다. | 토큰이 없거나 만료되었거나 유효하지 않은 경우 |
 
 ### 관리자 예약 생성
 
