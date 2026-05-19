@@ -66,7 +66,7 @@ POST /api/auth/login
 
 ```json
 {
-  "memberId": "memberId123",
+  "loginId": "memberId123",
   "password": "password123!"
 }
 ```

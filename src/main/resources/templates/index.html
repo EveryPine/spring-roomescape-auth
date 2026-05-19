@@ -7,72 +7,190 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
     body { background: #f8f9fa; }
-    .entry-panel { max-width: 520px; margin: 120px auto; }
+    .auth-panel { max-width: 520px; margin: 72px auto; }
+    .auth-panel .nav-link { color: #495057; }
+    .auth-panel .nav-link.active { font-weight: 600; }
   </style>
 </head>
 <body>
 <main class="container">
-  <section class="entry-panel bg-white border rounded p-4">
-    <h1 class="h3 mb-4 text-center">방탈출 예약</h1>
-    <form id="entryForm">
-      <div class="mb-3">
-        <label for="visitorName" class="form-label">사용자 이름</label>
-        <input type="text" id="visitorName" class="form-control" placeholder="이름을 입력하세요" required>
+  <section class="auth-panel bg-white border rounded p-4">
+    <h1 class="h3 mb-2 text-center">방탈출 예약</h1>
+    <p class="text-muted text-center mb-4">계정으로 입장하세요.</p>
+
+    <ul class="nav nav-tabs mb-4" id="authTabs" role="tablist">
+      <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="login-tab" data-bs-toggle="tab" data-bs-target="#loginPane"
+                type="button" role="tab" aria-controls="loginPane" aria-selected="true">로그인</button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" id="signup-tab" data-bs-toggle="tab" data-bs-target="#signupPane"
+                type="button" role="tab" aria-controls="signupPane" aria-selected="false">회원가입</button>
+      </li>
+    </ul>
+
+    <div class="tab-content">
+      <div class="tab-pane fade show active" id="loginPane" role="tabpanel" aria-labelledby="login-tab">
+        <form id="loginForm">
+          <div class="mb-3">
+            <label for="loginMemberId" class="form-label">아이디</label>
+            <input type="text" id="loginMemberId" class="form-control" autocomplete="username" required>
+          </div>
+          <div class="mb-4">
+            <label for="loginPassword" class="form-label">비밀번호</label>
+            <input type="password" id="loginPassword" class="form-control" autocomplete="current-password" required>
+          </div>
+          <button type="submit" class="btn btn-primary w-100">로그인</button>
+        </form>
       </div>
-      <div class="mb-4">
-        <label for="visitorRole" class="form-label">역할</label>
-        <select id="visitorRole" class="form-select" required>
-          <option value="">역할 선택</option>
-          <option value="USER">사용자</option>
-          <option value="ADMIN">관리자</option>
-        </select>
+
+      <div class="tab-pane fade" id="signupPane" role="tabpanel" aria-labelledby="signup-tab">
+        <form id="signupForm">
+          <div class="mb-3">
+            <label for="signupName" class="form-label">이름</label>
+            <input type="text" id="signupName" class="form-control" autocomplete="name" required>
+          </div>
+          <div class="mb-3">
+            <label for="signupMemberId" class="form-label">아이디</label>
+            <input type="text" id="signupMemberId" class="form-control" autocomplete="username" required>
+          </div>
+          <div class="mb-4">
+            <label for="signupPassword" class="form-label">비밀번호</label>
+            <input type="password" id="signupPassword" class="form-control" autocomplete="new-password" required>
+          </div>
+          <button type="submit" class="btn btn-outline-primary w-100">회원가입</button>
+        </form>
       </div>
-      <button type="submit" class="btn btn-primary w-100">입장</button>
-    </form>
+    </div>
   </section>
 </main>
 
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
+  const TOKEN_KEY = 'roomescapeToken';
   const PROFILE_NAME_KEY = 'roomescapeVisitorName';
   const PROFILE_ROLE_KEY = 'roomescapeVisitorRole';
+  const PROFILE_MEMBER_ID_KEY = 'roomescapeMemberId';
 
   document.addEventListener('DOMContentLoaded', () => {
-    const savedName = localStorage.getItem(PROFILE_NAME_KEY);
-    const savedRole = localStorage.getItem(PROFILE_ROLE_KEY);
-
-    if (savedName) {
-      document.getElementById('visitorName').value = savedName;
-    }
-    if (savedRole) {
-      document.getElementById('visitorRole').value = savedRole;
+    const savedMemberId = localStorage.getItem(PROFILE_MEMBER_ID_KEY);
+    if (savedMemberId) {
+      document.getElementById('loginMemberId').value = savedMemberId;
     }
 
-    document.getElementById('entryForm').addEventListener('submit', enterPage);
+    document.getElementById('loginForm').addEventListener('submit', login);
+    document.getElementById('signupForm').addEventListener('submit', signup);
   });
 
-  function enterPage(event) {
+  async function login(event) {
     event.preventDefault();
 
-    const name = document.getElementById('visitorName').value.trim();
-    const role = document.getElementById('visitorRole').value;
-
-    if (!name) {
-      alert('사용자 이름을 입력해주세요.');
-      return;
-    }
-    if (!role) {
-      alert('역할을 선택해주세요.');
+    const memberId = getValue('loginMemberId');
+    const password = getValue('loginPassword');
+    if (!memberId || !password) {
+      alert('아이디와 비밀번호를 입력해주세요.');
       return;
     }
 
-    localStorage.setItem(PROFILE_NAME_KEY, name);
-    localStorage.setItem(PROFILE_ROLE_KEY, role);
+    try {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ memberId, password })
+      });
 
-    if (role === 'USER') {
-      location.href = '/themes';
+      if (!response.ok) {
+        alert('로그인 실패: ' + await parseErrorMessage(response));
+        return;
+      }
+
+      const body = await response.json();
+      saveLoginState(body.token, memberId);
+      enterPage();
+    } catch (error) {
+      console.error('로그인 중 오류:', error);
+      alert('로그인 중 오류가 발생했습니다.');
+    }
+  }
+
+  async function signup(event) {
+    event.preventDefault();
+
+    const name = getValue('signupName');
+    const memberId = getValue('signupMemberId');
+    const password = getValue('signupPassword');
+    if (!name || !memberId || !password) {
+      alert('회원 정보를 모두 입력해주세요.');
       return;
     }
-    location.href = '/admin';
+
+    try {
+      const response = await fetch('/api/members', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, memberId, password })
+      });
+
+      if (!response.ok) {
+        alert('회원가입 실패: ' + await parseErrorMessage(response));
+        return;
+      }
+
+      localStorage.setItem(PROFILE_NAME_KEY, name);
+      document.getElementById('loginMemberId').value = memberId;
+      document.getElementById('loginPassword').value = password;
+      await login(new Event('submit'));
+    } catch (error) {
+      console.error('회원가입 중 오류:', error);
+      alert('회원가입 중 오류가 발생했습니다.');
+    }
+  }
+
+  function saveLoginState(token, memberId) {
+    const payload = parseJwtPayload(token);
+    localStorage.setItem(TOKEN_KEY, token);
+    localStorage.setItem(PROFILE_MEMBER_ID_KEY, memberId);
+    localStorage.setItem(PROFILE_ROLE_KEY, payload.role || 'USER');
+    localStorage.setItem(PROFILE_NAME_KEY, localStorage.getItem(PROFILE_NAME_KEY) || memberId);
+  }
+
+  function enterPage() {
+    const role = localStorage.getItem(PROFILE_ROLE_KEY);
+    if (role === 'ADMIN') {
+      location.href = '/admin';
+      return;
+    }
+    location.href = '/themes';
+  }
+
+  function getValue(id) {
+    return document.getElementById(id).value.trim();
+  }
+
+  function parseJwtPayload(token) {
+    try {
+      const payload = token.split('.')[1];
+      const normalized = payload.replace(/-/g, '+').replace(/_/g, '/');
+      const decoded = decodeURIComponent(Array.from(atob(normalized))
+        .map(char => '%' + char.charCodeAt(0).toString(16).padStart(2, '0'))
+        .join(''));
+      return JSON.parse(decoded);
+    } catch (error) {
+      return {};
+    }
+  }
+
+  async function parseErrorMessage(response) {
+    try {
+      const errorData = await response.json();
+      const details = Array.isArray(errorData.errors) ? errorData.errors : [];
+      if (details.length > 0) {
+        return details.map(error => error.message).join('\n');
+      }
+      return errorData.message || '알 수 없는 오류';
+    } catch (error) {
+      return '알 수 없는 오류';
+    }
   }
 </script>
 </body>

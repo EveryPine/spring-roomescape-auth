@@ -52,6 +52,8 @@
 </main>
 
 <script>
+  const TOKEN_KEY = 'roomescapeToken';
+
   function getVal(id) {
     const el = document.getElementById(id);
     if (!el) {
@@ -74,8 +76,14 @@
     }
   }
 
-  function reservationNameHeader() {
-    return encodeURIComponent(getVal('name'));
+  function authHeaders(extraHeaders = {}) {
+    const token = localStorage.getItem(TOKEN_KEY);
+    if (!token) {
+      alert('로그인이 필요합니다.');
+      location.href = '/';
+      return null;
+    }
+    return { ...extraHeaders, 'Authorization': `Bearer ${token}` };
   }
 
   function openThemes() {
@@ -103,8 +111,11 @@
     }
 
     try {
+      const headers = authHeaders();
+      if (!headers) return;
+
       const response = await fetch('/api/reservations', {
-        headers: { 'Reservation-Name': reservationNameHeader() }
+        headers
       });
 
       if (!response.ok) {
@@ -207,12 +218,12 @@
     }
 
     try {
+      const headers = authHeaders({ 'Content-Type': 'application/json' });
+      if (!headers) return;
+
       const response = await fetch(`/api/reservations/${id}`, {
         method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'Reservation-Name': reservationNameHeader()
-        },
+        headers,
         body: JSON.stringify({ date, timeId })
       });
 
@@ -232,9 +243,12 @@
     if (!confirm('예약을 취소하시겠습니까?')) return;
 
     try {
+      const headers = authHeaders();
+      if (!headers) return;
+
       const response = await fetch(`/api/reservations/${id}`, {
         method: 'DELETE',
-        headers: { 'Reservation-Name': reservationNameHeader() }
+        headers
       });
 
       if (response.ok) {

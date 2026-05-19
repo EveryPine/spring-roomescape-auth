@@ -11,6 +11,10 @@ public final class PasswordEncoder {
     }
 
     public static boolean matches(String password, String encodedPassword) {
-        return BCrypt.checkpw(password, encodedPassword);
+        try {
+            return BCrypt.checkpw(password, encodedPassword);
+        } catch (IllegalArgumentException e) {
+            return false;
+        }
     }
 }

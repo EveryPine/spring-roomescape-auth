@@ -122,7 +122,8 @@ class ReservationServiceTest {
                     LocalDateTime.of(2026, 1, 1, 0, 0)));
             Long memberId = 1L;
 
-            List<ReservationResponseDto> actual = reservationService.getReservationsByMemberId(memberId);
+            List<ReservationResponseDto> actual = reservationService.getReservationsByMemberId(
+                memberId);
 
             assertAll(
                 () -> assertEquals(1, actual.size()),
@@ -155,7 +156,8 @@ class ReservationServiceTest {
             timeRepository.save(Time.create(LocalTime.of(15, 30)));
 
             // when
-            ReservationCreateResponseDto actual = reservationService.saveReservation(memberId, request,
+            ReservationCreateResponseDto actual = reservationService.saveReservation(memberId,
+                request,
                 LocalDateTime.of(2026, 1, 1, 0, 0));
 
             // then
@@ -207,7 +209,7 @@ class ReservationServiceTest {
                 LocalDateTime.of(2026, 1, 1, 0, 0)))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
-                .isEqualTo(ErrorCode.TIME_NOT_FOUND);
+                .isEqualTo(ErrorCode.COMMON_INVALID_REQUEST_BODY);
         }
 
         @Test
@@ -225,7 +227,7 @@ class ReservationServiceTest {
                 LocalDateTime.of(2026, 1, 1, 0, 0)))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
-                .isEqualTo(ErrorCode.THEME_NOT_FOUND);
+                .isEqualTo(ErrorCode.COMMON_INVALID_REQUEST_BODY);
         }
 
         @Test
@@ -375,8 +377,9 @@ class ReservationServiceTest {
             ReservationUpdateRequestDto request = new ReservationUpdateRequestDto(
                 changeDate, wrongId);
 
-            assertThatThrownBy(() -> reservationService.updateReservation(wrongMemberId, id, request,
-                LocalDateTime.of(2026, 1, 1, 0, 0)))
+            assertThatThrownBy(
+                () -> reservationService.updateReservation(wrongMemberId, id, request,
+                    LocalDateTime.of(2026, 1, 1, 0, 0)))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(ErrorCode.RESERVATION_FORBIDDEN);

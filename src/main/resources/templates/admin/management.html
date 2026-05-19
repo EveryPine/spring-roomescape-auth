@@ -186,6 +186,7 @@
 </main>
 
 <script>
+  const TOKEN_KEY = 'roomescapeToken';
 	  const RESERVATIONS_PER_PAGE = 20;
 	  let allReservations = [];
 	  let reservations = [];
@@ -195,8 +196,27 @@
     return `<tr><td colspan="${colspan}" class="text-center text-muted py-4">${message}</td></tr>`;
   }
 
+  function withAuth(options = {}) {
+    const token = localStorage.getItem(TOKEN_KEY);
+    if (!token) {
+      alert('로그인이 필요합니다.');
+      location.href = '/';
+      return null;
+    }
+    return {
+      ...options,
+      headers: {
+        ...(options.headers || {}),
+        'Authorization': `Bearer ${token}`
+      }
+    };
+  }
+
   async function requestJson(url, options = {}) {
-    const response = await fetch(url, options);
+    const authenticatedOptions = withAuth(options);
+    if (!authenticatedOptions) return null;
+
+    const response = await fetch(url, authenticatedOptions);
     if (!response.ok) {
       throw new Error(await parseErrorMessage(response));
     }
@@ -207,7 +227,10 @@
   }
 
   async function requestOk(url, options = {}) {
-    const response = await fetch(url, options);
+    const authenticatedOptions = withAuth(options);
+    if (!authenticatedOptions) return;
+
+    const response = await fetch(url, authenticatedOptions);
     if (!response.ok) {
       throw new Error(await parseErrorMessage(response));
     }
