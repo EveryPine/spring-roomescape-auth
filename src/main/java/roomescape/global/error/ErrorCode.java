@@ -8,6 +8,8 @@ public enum ErrorCode {
     COMMON_INVALID_PARAMETER_TYPE(HttpStatus.BAD_REQUEST, "요청 파라미터의 형식이 잘못되었습니다."),
     COMMON_INVALID_REQUEST_BODY(HttpStatus.BAD_REQUEST, "요청 본문의 형식이 잘못되었습니다."),
 
+    AUTH_LOGIN_FAILED(HttpStatus.UNAUTHORIZED, "아이디나 비밀번호가 일치하지 않습니다."),
+
     MEMBER_DUPLICATE(HttpStatus.CONFLICT, "이미 존재하는 이용자입니다."),
 
     RESERVATION_FORBIDDEN(HttpStatus.FORBIDDEN, "요청한 예약에 접근할 권한이 없습니다."),

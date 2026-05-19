@@ -2,6 +2,7 @@ package roomescape.global.auth.repository;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
 import roomescape.global.auth.entity.Member;
 
@@ -18,8 +19,9 @@ public class FakeMemberRepository implements MemberRepository {
     }
 
     @Override
-    public boolean existsByLoginId(String loginId) {
+    public Optional<Member> findByLoginId(String loginId) {
         return members.stream()
-            .anyMatch(member -> member.getLoginId().equals(loginId));
+            .filter(member -> member.getLoginId().equals(loginId))
+            .findFirst();
     }
 }

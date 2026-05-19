@@ -7,7 +7,9 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import roomescape.global.auth.JwtProvider;
 import roomescape.global.auth.PasswordEncoder;
+import roomescape.global.auth.dto.request.LoginRequestDto;
 import roomescape.global.auth.dto.request.MemberCreateRequestDto;
 import roomescape.global.auth.entity.Member;
 import roomescape.global.auth.entity.Role;
@@ -23,7 +25,8 @@ class AuthServiceTest {
 
     AuthServiceTest() {
         this.memberRepository = new FakeMemberRepository();
-        this.authService = new AuthService(memberRepository);
+        JwtProvider jwtProvider = new JwtProvider("12345678901234567890123456789012", 3_600_000L);
+        this.authService = new AuthService(memberRepository, jwtProvider);
     }
 
     @Nested
@@ -74,6 +77,58 @@ class AuthServiceTest {
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(ErrorCode.MEMBER_DUPLICATE);
+        }
+    }
+
+    @Nested
+    @DisplayName("login 테스트")
+    class LoginTest {
+
+        @Test
+        @DisplayName("올바른 아이디와 비밀번호로 로그인하면 accessToken을 반환한다.")
+        void 성공() {
+            // given
+            authService.saveMember(
+                new MemberCreateRequestDto("브라운", "memberId123", "password123!"),
+                Role.USER
+            );
+            LoginRequestDto request = new LoginRequestDto("memberId123", "password123!");
+
+            // when
+            String actual = authService.login(request);
+
+            // then
+            assertThat(actual).isNotBlank();
+        }
+
+        @Test
+        @DisplayName("존재하지 않는 아이디로 로그인하면 401 Unauthorized 예외가 발생한다.")
+        void 실패1() {
+            // given
+            LoginRequestDto request = new LoginRequestDto("unknownMemberId", "password123!");
+
+            // when & then
+            assertThatThrownBy(() -> authService.login(request))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(ErrorCode.AUTH_LOGIN_FAILED);
+        }
+
+        @Test
+        @DisplayName("비밀번호가 틀리면 401 Unauthorized 예외가 발생한다.")
+        void 실패2() {
+            // given
+            authService.saveMember(
+                new MemberCreateRequestDto("브라운", "memberId123", "password123!"),
+                Role.USER
+            );
+            LoginRequestDto request = new LoginRequestDto("memberId123", "wrongPassword");
+
+            // when & then
+            assertThatThrownBy(() -> authService.login(request))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(ErrorCode.AUTH_LOGIN_FAILED);
         }
     }
 }
