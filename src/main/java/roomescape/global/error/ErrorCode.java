@@ -9,6 +9,10 @@ public enum ErrorCode {
     COMMON_INVALID_REQUEST_BODY(HttpStatus.BAD_REQUEST, "요청 본문의 형식이 잘못되었습니다."),
 
     AUTH_LOGIN_FAILED(HttpStatus.UNAUTHORIZED, "아이디나 비밀번호가 일치하지 않습니다."),
+    AUTH_EXPIRED_TOKEN(HttpStatus.UNAUTHORIZED, "만료된 토큰입니다."),
+    AUTH_INVALID_TOKEN(HttpStatus.UNAUTHORIZED, "유효하지 않은 토큰입니다."),
+    AUTH_UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "인증되지 않은 이용자입니다."),
+    AUTH_FORBIDDEN(HttpStatus.FORBIDDEN, "접근할 권한이 없습니다."),
 
     MEMBER_DUPLICATE(HttpStatus.CONFLICT, "이미 존재하는 이용자입니다."),
 

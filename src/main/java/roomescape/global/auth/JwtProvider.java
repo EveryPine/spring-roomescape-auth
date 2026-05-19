@@ -1,5 +1,8 @@
 package roomescape.global.auth;
 
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import java.nio.charset.StandardCharsets;
@@ -9,6 +12,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Component;
 import roomescape.global.auth.entity.Member;
+import roomescape.global.error.ErrorCode;
+import roomescape.global.error.exception.BusinessException;
 
 @PropertySource("classpath:security.properties")
 @Component
@@ -38,6 +43,20 @@ public class JwtProvider {
     private Date getExpirationTime() {
         Date now = new Date();
         return new Date(now.getTime() + EXPIRATION_TIME);
+    }
+
+    public Claims validateToken(String token) {
+        try {
+            return Jwts.parserBuilder()
+                .setSigningKey(KEY)
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
+        } catch (ExpiredJwtException e) {
+            throw new BusinessException(ErrorCode.AUTH_EXPIRED_TOKEN);
+        } catch (JwtException | IllegalArgumentException e) {
+            throw new BusinessException(ErrorCode.AUTH_INVALID_TOKEN);
+        }
     }
 
 }

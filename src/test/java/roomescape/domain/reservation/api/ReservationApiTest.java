@@ -17,6 +17,10 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.beans.factory.annotation.Autowired;
+import roomescape.TestAuthorizationProvider;
+import roomescape.global.auth.JwtProvider;
+import roomescape.global.auth.entity.Role;
 import roomescape.global.error.TypeMismatchMessage;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -24,12 +28,18 @@ import roomescape.global.error.TypeMismatchMessage;
 @DisplayName("사용자 예약의")
 class ReservationApiTest {
 
+    @Autowired
+    private JwtProvider jwtProvider;
+
+    private TestAuthorizationProvider testAuthorizationProvider;
+
     @LocalServerPort
     private int port;
 
     @BeforeEach
     void setUp() {
         RestAssured.port = port;
+        testAuthorizationProvider = new TestAuthorizationProvider(jwtProvider);
     }
 
     @Nested
@@ -42,6 +52,7 @@ class ReservationApiTest {
             createReservation("브라운", "2026-12-31", 1L, 1L);
 
             given()
+                .header("Authorization", testAuthorizationProvider.bearerToken(Role.USER))
                 .header("Reservation-Name", URLEncoder.encode("브라운", UTF_8))
                 .when()
                 .get("/api/reservations")
@@ -54,6 +65,7 @@ class ReservationApiTest {
         @DisplayName("헤더가 없으면 400을 반환한다.")
         void 실패1() {
             given()
+                .header("Authorization", testAuthorizationProvider.bearerToken(Role.USER))
                 .when()
                 .get("/api/reservations")
                 .then()
@@ -69,6 +81,7 @@ class ReservationApiTest {
         @DisplayName("정상 요청이면 201을 반환한다.")
         void 성공() {
             given()
+                .header("Authorization", testAuthorizationProvider.bearerToken(Role.USER))
                 .contentType(ContentType.JSON)
                 .body(Map.of(
                     "name", "브라운",
@@ -87,6 +100,7 @@ class ReservationApiTest {
         @DisplayName("이름이 빈 문자열이면 400을 반환한다.")
         void 실패1() {
             given()
+                .header("Authorization", testAuthorizationProvider.bearerToken(Role.USER))
                 .contentType(ContentType.JSON)
                 .body(Map.of(
                     "name", "",
@@ -107,6 +121,7 @@ class ReservationApiTest {
         @DisplayName("필수 필드가 누락되면 400을 반환한다.")
         void 실패2() {
             given()
+                .header("Authorization", testAuthorizationProvider.bearerToken(Role.USER))
                 .contentType(ContentType.JSON)
                 .body(Map.of(
                     "name", "브라운",
@@ -128,6 +143,7 @@ class ReservationApiTest {
             String wrongDate = "2026/12/31";
 
             given()
+                .header("Authorization", testAuthorizationProvider.bearerToken(Role.USER))
                 .contentType(ContentType.JSON)
                 .body(Map.of(
                     "name", "브라운",
@@ -155,6 +171,7 @@ class ReservationApiTest {
             Long id = createReservation("브라운", "2026-12-30", 1L, 1L);
 
             given()
+                .header("Authorization", testAuthorizationProvider.bearerToken(Role.USER))
                 .header("Reservation-Name", URLEncoder.encode("브라운", UTF_8))
                 .contentType(ContentType.JSON)
                 .body(Map.of(
@@ -173,6 +190,7 @@ class ReservationApiTest {
             Long id = createReservation("브라운", "2026-12-30", 1L, 1L);
 
             given()
+                .header("Authorization", testAuthorizationProvider.bearerToken(Role.USER))
                 .contentType(ContentType.JSON)
                 .body(Map.of(
                     "date", "2026-12-31",
@@ -190,6 +208,7 @@ class ReservationApiTest {
             Object wrongId = "a";
 
             given()
+                .header("Authorization", testAuthorizationProvider.bearerToken(Role.USER))
                 .header("Reservation-Name", URLEncoder.encode("브라운", UTF_8))
                 .contentType(ContentType.JSON)
                 .body(Map.of(
@@ -201,7 +220,8 @@ class ReservationApiTest {
                 .statusCode(400)
                 .body("errors.field", hasItem("id"))
                 .body("errors.find { it.field == 'id' }.value", equalTo(wrongId))
-                .body("errors.find { it.field == 'id' }.message", equalTo(TypeMismatchMessage.from(Long.class)));
+                .body("errors.find { it.field == 'id' }.message",
+                    equalTo(TypeMismatchMessage.from(Long.class)));
         }
 
         @Test
@@ -210,6 +230,7 @@ class ReservationApiTest {
             Long id = createReservation("브라운", "2026-12-30", 1L, 1L);
 
             given()
+                .header("Authorization", testAuthorizationProvider.bearerToken(Role.USER))
                 .header("Reservation-Name", URLEncoder.encode("브라운", UTF_8))
                 .contentType(ContentType.JSON)
                 .body(Map.of(
@@ -231,6 +252,7 @@ class ReservationApiTest {
             String wrongDate = "2026/12/31";
 
             given()
+                .header("Authorization", testAuthorizationProvider.bearerToken(Role.USER))
                 .header("Reservation-Name", URLEncoder.encode("브라운", UTF_8))
                 .contentType(ContentType.JSON)
                 .body(Map.of(
@@ -257,6 +279,7 @@ class ReservationApiTest {
             Long id = createReservation("브라운", "2026-12-31", 1L, 1L);
 
             given()
+                .header("Authorization", testAuthorizationProvider.bearerToken(Role.USER))
                 .header("Reservation-Name", URLEncoder.encode("브라운", UTF_8))
                 .when()
                 .delete("/api/reservations/{id}", id)
@@ -270,6 +293,7 @@ class ReservationApiTest {
             Long id = createReservation("브라운", "2026-12-31", 1L, 1L);
 
             given()
+                .header("Authorization", testAuthorizationProvider.bearerToken(Role.USER))
                 .when()
                 .delete("/api/reservations/{id}", id)
                 .then()
@@ -279,6 +303,7 @@ class ReservationApiTest {
 
     private Long createReservation(String name, String date, Long timeId, Long themeId) {
         return given()
+            .header("Authorization", testAuthorizationProvider.bearerToken(Role.USER))
             .contentType(ContentType.JSON)
             .body(Map.of(
                 "name", name,

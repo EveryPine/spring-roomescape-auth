@@ -15,11 +15,20 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.beans.factory.annotation.Autowired;
+import roomescape.TestAuthorizationProvider;
+import roomescape.global.auth.JwtProvider;
+import roomescape.global.auth.entity.Role;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 @DisplayName("관리자 예약의")
 class AdminReservationApiTest {
+
+    @Autowired
+    private JwtProvider jwtProvider;
+
+    private TestAuthorizationProvider testAuthorizationProvider;
 
     @LocalServerPort
     private int port;
@@ -27,6 +36,7 @@ class AdminReservationApiTest {
     @BeforeEach
     void setUp() {
         RestAssured.port = port;
+        testAuthorizationProvider = new TestAuthorizationProvider(jwtProvider);
     }
 
     @Nested
@@ -37,6 +47,7 @@ class AdminReservationApiTest {
         @DisplayName("전체 예약을 조회한다.")
         void 성공() {
             given()
+                .header("Authorization", testAuthorizationProvider.bearerToken(Role.ADMIN))
                 .when()
                 .get("/api/admin/reservations")
                 .then()
@@ -52,6 +63,7 @@ class AdminReservationApiTest {
         @DisplayName("예약을 생성한다.")
         void 성공() {
             given()
+                .header("Authorization", testAuthorizationProvider.bearerToken(Role.ADMIN))
                 .contentType(ContentType.JSON)
                 .body(Map.of(
                     "name", "시오",
@@ -70,6 +82,7 @@ class AdminReservationApiTest {
         @DisplayName("이름이 빈 문자열이면 400을 반환한다.")
         void 실패1() {
             given()
+                .header("Authorization", testAuthorizationProvider.bearerToken(Role.ADMIN))
                 .contentType(ContentType.JSON)
                 .body(Map.of(
                     "name", "",
@@ -90,6 +103,7 @@ class AdminReservationApiTest {
         @DisplayName("필수 필드가 누락되면 400을 반환한다.")
         void 실패2() {
             given()
+                .header("Authorization", testAuthorizationProvider.bearerToken(Role.ADMIN))
                 .contentType(ContentType.JSON)
                 .body(Map.of(
                     "name", "시오",
@@ -111,6 +125,7 @@ class AdminReservationApiTest {
             String wrongDate = "2026/12/31";
 
             given()
+                .header("Authorization", testAuthorizationProvider.bearerToken(Role.ADMIN))
                 .contentType(ContentType.JSON)
                 .body(Map.of(
                     "name", "시오",
@@ -138,6 +153,7 @@ class AdminReservationApiTest {
             Long id = createReservation();
 
             given()
+                .header("Authorization", testAuthorizationProvider.bearerToken(Role.ADMIN))
                 .when()
                 .delete("/api/admin/reservations/{id}", id)
                 .then()
@@ -147,6 +163,7 @@ class AdminReservationApiTest {
 
     private Long createReservation() {
         return given()
+            .header("Authorization", testAuthorizationProvider.bearerToken(Role.ADMIN))
             .contentType(ContentType.JSON)
             .body(Map.of(
                 "name", "시오",

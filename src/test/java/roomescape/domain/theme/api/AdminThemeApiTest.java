@@ -15,6 +15,10 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.beans.factory.annotation.Autowired;
+import roomescape.TestAuthorizationProvider;
+import roomescape.global.auth.JwtProvider;
+import roomescape.global.auth.entity.Role;
 import roomescape.global.error.TypeMismatchMessage;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -22,12 +26,18 @@ import roomescape.global.error.TypeMismatchMessage;
 @DisplayName("관리자 테마의")
 class AdminThemeApiTest {
 
+    @Autowired
+    private JwtProvider jwtProvider;
+
+    private TestAuthorizationProvider testAuthorizationProvider;
+
     @LocalServerPort
     private int port;
 
     @BeforeEach
     void setUp() {
         RestAssured.port = port;
+        testAuthorizationProvider = new TestAuthorizationProvider(jwtProvider);
     }
 
     @Nested
@@ -38,6 +48,7 @@ class AdminThemeApiTest {
         @DisplayName("테마를 생성한다.")
         void 성공() {
             given()
+                .header("Authorization", testAuthorizationProvider.bearerToken(Role.ADMIN))
                 .contentType(ContentType.JSON)
                 .body(Map.of(
                     "name", "새 테마",
@@ -55,6 +66,7 @@ class AdminThemeApiTest {
         @DisplayName("이름이 빈 문자열이면 400을 반환한다.")
         void 실패1() {
             given()
+                .header("Authorization", testAuthorizationProvider.bearerToken(Role.ADMIN))
                 .contentType(ContentType.JSON)
                 .body(Map.of(
                     "name", "",
@@ -74,6 +86,7 @@ class AdminThemeApiTest {
         @DisplayName("필수 필드가 누락되면 400을 반환한다.")
         void 실패2() {
             given()
+                .header("Authorization", testAuthorizationProvider.bearerToken(Role.ADMIN))
                 .contentType(ContentType.JSON)
                 .body(Map.of(
                     "name", "새 테마",
@@ -99,6 +112,7 @@ class AdminThemeApiTest {
             Long id = createTheme();
 
             given()
+                .header("Authorization", testAuthorizationProvider.bearerToken(Role.ADMIN))
                 .when()
                 .delete("/api/admin/themes/{id}", id)
                 .then()
@@ -111,6 +125,7 @@ class AdminThemeApiTest {
             Object wrongId = "a";
 
             given()
+                .header("Authorization", testAuthorizationProvider.bearerToken(Role.ADMIN))
                 .when()
                 .delete("/api/admin/themes/{id}", wrongId)
                 .then()
@@ -123,6 +138,7 @@ class AdminThemeApiTest {
 
     private Long createTheme() {
         return given()
+            .header("Authorization", testAuthorizationProvider.bearerToken(Role.ADMIN))
             .contentType(ContentType.JSON)
             .body(Map.of(
                 "name", "삭제할 테마",

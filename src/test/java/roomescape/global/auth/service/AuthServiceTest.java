@@ -4,6 +4,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertAll;
 
+import java.security.SecureRandom;
+import java.util.Base64;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -25,7 +27,7 @@ class AuthServiceTest {
 
     AuthServiceTest() {
         this.memberRepository = new FakeMemberRepository();
-        JwtProvider jwtProvider = new JwtProvider("12345678901234567890123456789012", 3_600_000L);
+        JwtProvider jwtProvider = new JwtProvider(secretKey(), 3_600_000L);
         this.authService = new AuthService(memberRepository, jwtProvider);
     }
 
@@ -130,5 +132,12 @@ class AuthServiceTest {
                 .extracting("errorCode")
                 .isEqualTo(ErrorCode.AUTH_LOGIN_FAILED);
         }
+    }
+
+    private static String secretKey() {
+        byte[] key = new byte[64];
+        new SecureRandom().nextBytes(key);
+
+        return Base64.getEncoder().encodeToString(key);
     }
 }

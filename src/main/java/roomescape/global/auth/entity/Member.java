@@ -16,7 +16,6 @@ public class Member {
         this.role = role;
     }
 
-
     public static Member create(String name, String loginId, String password, Role role) {
         return new Member(null, name, loginId, password, role);
     }
