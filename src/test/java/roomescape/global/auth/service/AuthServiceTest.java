@@ -16,19 +16,24 @@ import roomescape.global.auth.dto.request.MemberCreateRequestDto;
 import roomescape.global.auth.entity.Member;
 import roomescape.global.auth.entity.Role;
 import roomescape.global.auth.repository.FakeMemberRepository;
+import roomescape.global.auth.repository.FakeTokenBlacklistRepository;
 import roomescape.global.auth.repository.MemberRepository;
+import roomescape.global.auth.repository.TokenBlacklistRepository;
 import roomescape.global.error.ErrorCode;
 import roomescape.global.error.exception.BusinessException;
 
 class AuthServiceTest {
 
     private final MemberRepository memberRepository;
+    private final TokenBlacklistRepository tokenBlacklistRepository;
+    private final JwtProvider jwtProvider;
     private final AuthService authService;
 
     AuthServiceTest() {
         this.memberRepository = new FakeMemberRepository();
-        JwtProvider jwtProvider = new JwtProvider(secretKey(), 3_600_000L);
-        this.authService = new AuthService(memberRepository, jwtProvider);
+        this.tokenBlacklistRepository = new FakeTokenBlacklistRepository();
+        this.jwtProvider = new JwtProvider(secretKey(), 3_600_000L);
+        this.authService = new AuthService(memberRepository, tokenBlacklistRepository, jwtProvider);
     }
 
     @Nested
@@ -131,6 +136,42 @@ class AuthServiceTest {
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(ErrorCode.AUTH_LOGIN_FAILED);
+        }
+    }
+
+    @Nested
+    @DisplayName("logout 테스트")
+    class LogoutTest {
+
+        @Test
+        @DisplayName("유효한 토큰으로 로그아웃하면 토큰을 블랙리스트에 저장한다.")
+        void 성공() {
+            // given
+            Member member = authService.saveMember(
+                new MemberCreateRequestDto("브라운", "memberId123", "password123!"),
+                Role.USER
+            );
+            String token = jwtProvider.generateToken(member);
+
+            // when
+            authService.logout(token);
+
+            // then
+            assertThat(tokenBlacklistRepository.existsByToken(token)).isTrue();
+        }
+
+        @Test
+        @DisplayName("유효하지 않은 토큰으로 로그아웃하면 401 Unauthorized 예외가 발생한다.")
+        void 실패1() {
+            // given
+            String invalidToken = "invalid-token";
+
+            // when & then
+            assertThatThrownBy(() -> authService.logout(invalidToken))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(ErrorCode.AUTH_INVALID_TOKEN);
+            assertThat(tokenBlacklistRepository.existsByToken(invalidToken)).isFalse();
         }
     }
 

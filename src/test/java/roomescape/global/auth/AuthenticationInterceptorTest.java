@@ -12,6 +12,7 @@ import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import roomescape.global.auth.entity.Member;
 import roomescape.global.auth.entity.Role;
+import roomescape.global.auth.repository.FakeTokenBlacklistRepository;
 import roomescape.global.error.ErrorCode;
 import roomescape.global.error.exception.BusinessException;
 
@@ -22,6 +23,7 @@ class AuthenticationInterceptorTest {
         3_600_000L
     );
     private final AuthenticationInterceptor interceptor = new AuthenticationInterceptor(
+        new FakeTokenBlacklistRepository(),
         new AuthenticationExtractor(),
         jwtProvider
     );
@@ -37,7 +39,8 @@ class AuthenticationInterceptorTest {
         request.addHeader("Authorization", "Bearer " + token);
 
         // when
-        boolean actual = interceptor.preHandle(request, new MockHttpServletResponse(), new Object());
+        boolean actual = interceptor.preHandle(request, new MockHttpServletResponse(),
+            new Object());
 
         // then
         assertAll(

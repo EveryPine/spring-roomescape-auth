@@ -20,7 +20,7 @@ import roomescape.domain.reservation.dto.request.ReservationUpdateRequestDto;
 import roomescape.domain.reservation.dto.response.ReservationCreateResponseDto;
 import roomescape.domain.reservation.dto.response.ReservationResponseDto;
 import roomescape.domain.reservation.service.ReservationService;
-import roomescape.global.auth.LoginMember;
+import roomescape.global.auth.annotation.LoginMember;
 import roomescape.global.auth.entity.Member;
 
 @RestController

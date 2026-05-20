@@ -1,4 +1,4 @@
-package roomescape.global.auth;
+package roomescape.global.auth.resolver;
 
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.core.MethodParameter;
@@ -7,6 +7,7 @@ import org.springframework.web.bind.support.WebDataBinderFactory;
 import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
+import roomescape.global.auth.annotation.LoginMember;
 import roomescape.global.auth.entity.Member;
 import roomescape.global.auth.repository.MemberRepository;
 import roomescape.global.error.ErrorCode;

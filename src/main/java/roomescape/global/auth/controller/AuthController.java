@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import roomescape.global.auth.annotation.AuthToken;
 import roomescape.global.auth.dto.request.LoginRequestDto;
 import roomescape.global.auth.dto.request.MemberCreateRequestDto;
 import roomescape.global.auth.dto.response.LoginResponseDto;
@@ -39,5 +40,13 @@ public class AuthController {
         String token = authService.login(request);
         return ResponseEntity.status(HttpStatus.OK)
             .body(new LoginResponseDto(token));
+    }
+
+    @PostMapping("/auth/logout")
+    public ResponseEntity<Void> logout(@AuthToken String accessToken) {
+        authService.logout(accessToken);
+
+        return ResponseEntity.status(HttpStatus.NO_CONTENT)
+            .body(null);
     }
 }

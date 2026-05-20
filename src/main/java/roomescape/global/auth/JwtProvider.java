@@ -7,6 +7,8 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Date;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
@@ -57,6 +59,15 @@ public class JwtProvider {
         } catch (JwtException | IllegalArgumentException e) {
             throw new BusinessException(ErrorCode.AUTH_INVALID_TOKEN);
         }
+    }
+
+    public LocalDateTime extractExpirationTime(String token) {
+        Claims claims = validateToken(token);
+
+        return claims.getExpiration()
+            .toInstant()
+            .atZone(ZoneId.systemDefault())
+            .toLocalDateTime();
     }
 
 }

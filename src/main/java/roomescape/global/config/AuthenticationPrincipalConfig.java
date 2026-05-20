@@ -7,8 +7,9 @@ import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import roomescape.global.auth.AdminAuthorizationInterceptor;
 import roomescape.global.auth.AuthenticationInterceptor;
-import roomescape.global.auth.LoginMemberArgumentResolver;
 import roomescape.global.auth.repository.MemberRepository;
+import roomescape.global.auth.resolver.AuthTokenArgumentResolver;
+import roomescape.global.auth.resolver.LoginMemberArgumentResolver;
 
 @Configuration
 public class AuthenticationPrincipalConfig implements WebMvcConfigurer {
@@ -28,7 +29,7 @@ public class AuthenticationPrincipalConfig implements WebMvcConfigurer {
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(authenticationInterceptor)
-            .addPathPatterns("/api/admin/**", "/api/reservations/**");
+            .addPathPatterns("/api/auth/logout", "/api/admin/**", "/api/reservations/**");
         registry.addInterceptor(adminAuthorizationInterceptor)
             .addPathPatterns("/api/admin/**");
     }
@@ -36,5 +37,6 @@ public class AuthenticationPrincipalConfig implements WebMvcConfigurer {
     @Override
     public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
         resolvers.add(new LoginMemberArgumentResolver(memberRepository));
+        resolvers.add(new AuthTokenArgumentResolver());
     }
 }
