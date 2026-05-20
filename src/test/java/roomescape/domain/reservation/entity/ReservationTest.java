@@ -9,10 +9,11 @@ import java.time.LocalTime;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import roomescape.global.error.exception.BusinessException;
-import roomescape.global.error.ErrorCode;
+import roomescape.domain.store.entity.Store;
 import roomescape.domain.theme.entity.Theme;
 import roomescape.domain.time.entity.Time;
+import roomescape.global.error.ErrorCode;
+import roomescape.global.error.exception.BusinessException;
 
 class ReservationTest {
 
@@ -27,7 +28,7 @@ class ReservationTest {
             Time time = Time.create(LocalTime.of(20, 30));
             Theme theme = Theme.create("성", "성 테마 설명", "castle_image_url");
 
-            assertThatCode(() -> Reservation.create(1L, date, time, theme,
+            assertThatCode(() -> createReservation(1L, date, time, theme,
                 LocalDateTime.of(2026, 1, 1, 0, 0)))
                 .doesNotThrowAnyException();
         }
@@ -39,7 +40,7 @@ class ReservationTest {
             Time time = Time.create(LocalTime.of(20, 30));
             Theme theme = Theme.create("성", "성 테마 설명", "castle_image_url");
 
-            assertThatThrownBy(() -> Reservation.create(1L, date, time, theme,
+            assertThatThrownBy(() -> createReservation(1L, date, time, theme,
                 LocalDateTime.now().minusDays(1)))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
@@ -53,7 +54,7 @@ class ReservationTest {
             Time time = Time.create(LocalTime.of(10, 0));
             Theme theme = Theme.create("성", "성 테마 설명", "castle_image_url");
 
-            assertThatThrownBy(() -> Reservation.create(1L, date, time, theme,
+            assertThatThrownBy(() -> createReservation(1L, date, time, theme,
                 LocalDateTime.now().minusHours(1)))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
@@ -61,4 +62,9 @@ class ReservationTest {
         }
     }
 
+    private static Reservation createReservation(Long memberId, LocalDate date, Time time,
+        Theme theme, LocalDateTime now) {
+        Store store = Store.create("강남점").withId(1L);
+        return Reservation.create(memberId, date, time, theme, store, now);
+    }
 }

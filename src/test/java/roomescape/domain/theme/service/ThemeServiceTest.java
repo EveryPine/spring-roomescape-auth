@@ -20,6 +20,7 @@ import roomescape.global.error.ErrorCode;
 import roomescape.domain.reservation.entity.Reservation;
 import roomescape.domain.reservation.repository.FakeReservationRepository;
 import roomescape.domain.reservation.repository.ReservationRepository;
+import roomescape.domain.store.entity.Store;
 import roomescape.domain.theme.dto.request.ThemeCreateRequestDto;
 import roomescape.domain.theme.dto.response.ThemeResponseDto;
 import roomescape.domain.theme.entity.Theme;
@@ -39,6 +40,12 @@ class ThemeServiceTest {
         this.themeRepository = new FakeThemeRepository();
         this.reservationRepository = new FakeReservationRepository();
         this.themeService = new ThemeService(reservationRepository, themeRepository);
+    }
+
+    private Reservation createReservation(Long memberId, LocalDate date, Time time, Theme theme,
+        LocalDateTime now) {
+        Store store = Store.create("강남점").withId(1L);
+        return Reservation.create(memberId, date, time, theme, store, now);
     }
 
     @Nested
@@ -82,7 +89,7 @@ class ThemeServiceTest {
                 int reservationCount = (15 - i) * 5;
 
                 for (int j = 0; j < reservationCount; j++) {
-                    reservations.add(Reservation.create(
+                    reservations.add(createReservation(
                         (long) j + 1,
                         targetDate,
                         Time.reconstruct(1L, LocalTime.of(10, 0)),
@@ -221,7 +228,7 @@ class ThemeServiceTest {
             Theme theme = themeRepository.save(Theme.create("테마명", "테마 설명",
                 "https://roomescape.com/images/themes/prison-room.png"));
             reservationRepository.save(
-                Reservation.create(1L, LocalDate.of(2026, 5, 12), time, theme,
+                createReservation(1L, LocalDate.of(2026, 5, 12), time, theme,
                     LocalDateTime.of(2026, 1, 1, 0, 0)));
             Long referencedId = theme.getId();
 

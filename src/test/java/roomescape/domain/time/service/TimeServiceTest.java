@@ -16,6 +16,7 @@ import roomescape.domain.reservation.entity.Reservation;
 import roomescape.domain.reservation.repository.FakeReservationRepository;
 import roomescape.domain.reservation.repository.ReservationRepository;
 import roomescape.domain.store.repository.FakeStoreRepository;
+import roomescape.domain.store.repository.StoreRepository;
 import roomescape.domain.theme.entity.Theme;
 import roomescape.domain.theme.repository.FakeThemeRepository;
 import roomescape.domain.theme.repository.ThemeRepository;
@@ -42,6 +43,12 @@ class TimeServiceTest {
         this.reservationRepository = new FakeReservationRepository();
         this.timeService = new TimeService(reservationRepository, themeRepository, storeRepository,
             timeRepository);
+    }
+
+    private Reservation createReservation(Long memberId, LocalDate date, Time time, Theme theme,
+        LocalDateTime now) {
+        return Reservation.create(memberId, date, time, theme,
+            storeRepository.findById(1L).orElseThrow(), now);
     }
 
     @Nested
@@ -108,16 +115,16 @@ class TimeServiceTest {
             ));
 
             reservationRepository.save(
-                Reservation.create(1L, LocalDate.of(2026, 5, 10), time1, theme1,
+                createReservation(1L, LocalDate.of(2026, 5, 10), time1, theme1,
                     LocalDateTime.of(2026, 1, 1, 0, 0)));
             reservationRepository.save(
-                Reservation.create(2L, LocalDate.of(2026, 5, 10), time2, theme2,
+                createReservation(2L, LocalDate.of(2026, 5, 10), time2, theme2,
                     LocalDateTime.of(2026, 1, 1, 0, 0)));
             reservationRepository.save(
-                Reservation.create(3L, LocalDate.of(2026, 5, 11), time3, theme3,
+                createReservation(3L, LocalDate.of(2026, 5, 11), time3, theme3,
                     LocalDateTime.of(2026, 1, 1, 0, 0)));
             reservationRepository.save(
-                Reservation.create(4L, LocalDate.of(2026, 5, 11), time4, theme1,
+                createReservation(4L, LocalDate.of(2026, 5, 11), time4, theme1,
                     LocalDateTime.of(2026, 1, 1, 0, 0)));
 
             LocalDate date = LocalDate.of(2026, 5, 10);
@@ -225,7 +232,7 @@ class TimeServiceTest {
             Time time = timeRepository.save(Time.create(LocalTime.of(12, 0)));
             Theme theme = themeRepository.save(Theme.create("테마명", "테마 설명", "썸네일 Url"));
             reservationRepository.save(
-                Reservation.create(1L, LocalDate.of(2026, 5, 12), time, theme,
+                createReservation(1L, LocalDate.of(2026, 5, 12), time, theme,
                     LocalDateTime.of(2026, 1, 1, 0, 0)));
 
             assertThatThrownBy(() -> timeService.deleteTimeById(time.getId()))

@@ -20,7 +20,9 @@ import roomescape.domain.reservation.dto.response.ReservationResponseDto;
 import roomescape.domain.reservation.entity.Reservation;
 import roomescape.domain.reservation.repository.FakeReservationRepository;
 import roomescape.domain.reservation.repository.ReservationRepository;
+import roomescape.domain.store.dto.response.StoreResponseDto;
 import roomescape.domain.store.repository.FakeStoreRepository;
+import roomescape.domain.store.repository.StoreRepository;
 import roomescape.domain.theme.dto.response.ThemeResponseDto;
 import roomescape.domain.theme.entity.Theme;
 import roomescape.domain.theme.repository.FakeThemeRepository;
@@ -50,6 +52,12 @@ class ReservationServiceTest {
             themeRepository, storeRepository);
     }
 
+    private Reservation createReservation(Long memberId, LocalDate date, Time time, Theme theme,
+        LocalDateTime now) {
+        return Reservation.create(memberId, date, time, theme,
+            storeRepository.findById(1L).orElseThrow(), now);
+    }
+
     @Nested
     @DisplayName("getReservation 테스트")
     class GetReservationsTest {
@@ -65,13 +73,13 @@ class ReservationServiceTest {
                 "https://roomescape.com/images/themes/ring-banner.png");
 
             reservationRepository.save(
-                Reservation.create(1L, date, time, theme, LocalDateTime.of(2026, 1, 1, 0, 0)));
+                createReservation(1L, date, time, theme, LocalDateTime.of(2026, 1, 1, 0, 0)));
             reservationRepository.save(
-                Reservation.create(2L, date.plusDays(1),
+                createReservation(2L, date.plusDays(1),
                     Time.reconstruct(2L, LocalTime.of(11, 0)), theme,
                     LocalDateTime.of(2026, 1, 1, 0, 0)));
             reservationRepository.save(
-                Reservation.create(3L, date.plusDays(2),
+                createReservation(3L, date.plusDays(2),
                     Time.reconstruct(3L, LocalTime.of(12, 0)), theme,
                     LocalDateTime.of(2026, 1, 1, 0, 0)));
 
@@ -82,19 +90,19 @@ class ReservationServiceTest {
             assertAll(
                 () -> assertEquals(3, actual.size()),
                 () -> assertEquals(
-                    new ReservationResponseDto(1L, 1L, null, date, TimeResponseDto.from(time),
-                        ThemeResponseDto.from(theme)),
+                    new ReservationResponseDto(1L, 1L, date, TimeResponseDto.from(time),
+                        ThemeResponseDto.from(theme), new StoreResponseDto(1L, "강남점")),
                     actual.get(0)),
                 () -> assertEquals(
-                    new ReservationResponseDto(2L, 2L, null, date.plusDays(1),
+                    new ReservationResponseDto(2L, 2L, date.plusDays(1),
                         TimeResponseDto.from(Time.reconstruct(2L, LocalTime.of(11, 0))),
-                        ThemeResponseDto.from(theme)),
+                        ThemeResponseDto.from(theme), new StoreResponseDto(1L, "강남점")),
                     actual.get(1)
                 ),
                 () -> assertEquals(
-                    new ReservationResponseDto(3L, 3L, null, date.plusDays(2),
+                    new ReservationResponseDto(3L, 3L, date.plusDays(2),
                         TimeResponseDto.from(Time.reconstruct(3L, LocalTime.of(12, 0))),
-                        ThemeResponseDto.from(theme)),
+                        ThemeResponseDto.from(theme), new StoreResponseDto(1L, "강남점")),
                     actual.get(2)
                 )
             );
@@ -114,13 +122,13 @@ class ReservationServiceTest {
                 "https://roomescape.com/images/themes/ring-banner.png");
 
             reservationRepository.save(
-                Reservation.create(1L, date, time, theme, LocalDateTime.of(2026, 1, 1, 0, 0)));
+                createReservation(1L, date, time, theme, LocalDateTime.of(2026, 1, 1, 0, 0)));
             reservationRepository.save(
-                Reservation.create(2L, date.plusDays(1),
+                createReservation(2L, date.plusDays(1),
                     Time.reconstruct(2L, LocalTime.of(11, 0)), theme,
                     LocalDateTime.of(2026, 1, 1, 0, 0)));
             reservationRepository.save(
-                Reservation.create(3L, date.plusDays(2),
+                createReservation(3L, date.plusDays(2),
                     Time.reconstruct(3L, LocalTime.of(12, 0)), theme,
                     LocalDateTime.of(2026, 1, 1, 0, 0)));
             Long memberId = 1L;
@@ -131,8 +139,8 @@ class ReservationServiceTest {
             assertAll(
                 () -> assertEquals(1, actual.size()),
                 () -> assertEquals(
-                    new ReservationResponseDto(1L, memberId, null, date, TimeResponseDto.from(time),
-                        ThemeResponseDto.from(theme)),
+                    new ReservationResponseDto(1L, memberId, date, TimeResponseDto.from(time),
+                        ThemeResponseDto.from(theme), new StoreResponseDto(1L, "강남점")),
                     actual.get(0))
             );
         }
@@ -150,6 +158,7 @@ class ReservationServiceTest {
             Long memberId = 1L;
             ReservationCreateRequestDto request = new ReservationCreateRequestDto(
                 LocalDate.of(2026, 5, 1),
+                1L,
                 1L,
                 1L
             );
@@ -170,6 +179,7 @@ class ReservationServiceTest {
                 () -> assertEquals(LocalDate.of(2026, 5, 1), actual.date()),
                 () -> assertEquals(1L, actual.timeId()),
                 () -> assertEquals(1L, actual.themeId()),
+                () -> assertEquals(1L, actual.storeId()),
                 () -> assertEquals(1, reservationRepository.findAllReservations().size())
             );
         }
@@ -184,11 +194,12 @@ class ReservationServiceTest {
             ReservationCreateRequestDto request = new ReservationCreateRequestDto(
                 LocalDate.of(2026, 5, 1),
                 time.getId(),
-                theme.getId()
+                theme.getId(),
+                1L
             );
             reservationRepository.save(
                 reservationRepository.save(
-                    Reservation.create(memberId, request.date(), time, theme,
+                    createReservation(memberId, request.date(), time, theme,
                         LocalDateTime.of(2026, 1, 1, 0, 0))));
 
             assertThatThrownBy(() -> reservationService.saveReservation(memberId, request,
@@ -205,7 +216,8 @@ class ReservationServiceTest {
             ReservationCreateRequestDto request = new ReservationCreateRequestDto(
                 LocalDate.of(2026, 5, 1),
                 wrongTimeId,
-                theme.getId()
+                theme.getId(),
+                1L
             );
 
             assertThatThrownBy(() -> reservationService.saveReservation(1L, request,
@@ -223,7 +235,8 @@ class ReservationServiceTest {
             ReservationCreateRequestDto request = new ReservationCreateRequestDto(
                 LocalDate.of(2026, 5, 1),
                 time.getId(),
-                wrongThemeId
+                wrongThemeId,
+                1L
             );
 
             assertThatThrownBy(() -> reservationService.saveReservation(1L, request,
@@ -242,7 +255,8 @@ class ReservationServiceTest {
             ReservationCreateRequestDto request = new ReservationCreateRequestDto(
                 LocalDate.of(2025, 12, 31),
                 time.getId(),
-                theme.getId()
+                theme.getId(),
+                1L
             );
 
             assertThatThrownBy(() -> reservationService.saveReservation(1L, request,
@@ -262,7 +276,7 @@ class ReservationServiceTest {
         void 성공1() {
             Long memberId = 1L;
             Reservation savedReservation = reservationRepository.save(
-                Reservation.create(memberId, LocalDate.of(2026, 5, 3),
+                createReservation(memberId, LocalDate.of(2026, 5, 3),
                     Time.reconstruct(2L, LocalTime.of(13, 0)),
                     Theme.reconstruct(1L, "테마 이름", "테마 설명",
                         "https://roomescape.com/images/themes/ring-banner.png"),
@@ -291,7 +305,7 @@ class ReservationServiceTest {
             Long memberId = 1L;
             Time time = timeRepository.save(Time.create(LocalTime.of(13, 0)));
             Reservation savedReservation = reservationRepository.save(
-                Reservation.create(memberId, LocalDate.of(2026, 5, 3), time,
+                createReservation(memberId, LocalDate.of(2026, 5, 3), time,
                     Theme.reconstruct(1L, "테마 이름", "테마 설명",
                         "https://roomescape.com/images/themes/ring-banner.png"),
                     LocalDateTime.of(2026, 1, 1, 0, 0)));
@@ -316,7 +330,7 @@ class ReservationServiceTest {
         void 성공3() {
             Long memberId = 1L;
             Reservation savedReservation = reservationRepository.save(
-                Reservation.create(memberId, LocalDate.of(2026, 1, 1),
+                createReservation(memberId, LocalDate.of(2026, 1, 1),
                     Time.reconstruct(1L, LocalTime.of(13, 0)),
                     Theme.reconstruct(1L, "테마 이름", "테마 설명",
                         "https://roomescape.com/images/themes/ring-banner.png"),
@@ -342,7 +356,7 @@ class ReservationServiceTest {
         void 실패1() {
             Long memberId = 1L;
             Reservation savedReservation = reservationRepository.save(
-                Reservation.create(memberId, LocalDate.of(2026, 5, 3),
+                createReservation(memberId, LocalDate.of(2026, 5, 3),
                     Time.reconstruct(2L, LocalTime.of(13, 0)),
                     Theme.reconstruct(1L, "테마 이름", "테마 설명",
                         "https://roomescape.com/images/themes/ring-banner.png"),
@@ -368,7 +382,7 @@ class ReservationServiceTest {
         @DisplayName("요청한 예약에 권한이 없는 경우 예외가 발생한다.")
         void 실패2() {
             Reservation savedReservation = reservationRepository.save(
-                Reservation.create(1L, LocalDate.of(2026, 5, 3),
+                createReservation(1L, LocalDate.of(2026, 5, 3),
                     Time.reconstruct(2L, LocalTime.of(13, 0)),
                     Theme.reconstruct(1L, "테마 이름", "테마 설명",
                         "https://roomescape.com/images/themes/ring-banner.png"),
@@ -397,10 +411,10 @@ class ReservationServiceTest {
             Time originalTime = timeRepository.save(Time.create(LocalTime.of(13, 0)));
             Time duplicatedTime = timeRepository.save(Time.create(LocalTime.of(20, 30)));
             Reservation savedReservation = reservationRepository.save(
-                Reservation.create(memberId, LocalDate.of(2026, 5, 3), originalTime, theme,
+                createReservation(memberId, LocalDate.of(2026, 5, 3), originalTime, theme,
                     LocalDateTime.of(2026, 1, 1, 0, 0)));
             reservationRepository.save(
-                Reservation.create(2L, LocalDate.of(2026, 5, 4), duplicatedTime, theme,
+                createReservation(2L, LocalDate.of(2026, 5, 4), duplicatedTime, theme,
                     LocalDateTime.of(2026, 1, 1, 0, 0)));
             Long id = savedReservation.getId();
             ReservationUpdateRequestDto request = new ReservationUpdateRequestDto(
@@ -418,7 +432,7 @@ class ReservationServiceTest {
         void 실패4() {
             Long memberId = 1L;
             Reservation savedReservation = reservationRepository.save(
-                Reservation.create(memberId, LocalDate.of(2025, 12, 31),
+                createReservation(memberId, LocalDate.of(2025, 12, 31),
                     Time.reconstruct(2L, LocalTime.of(13, 0)),
                     Theme.reconstruct(1L, "테마 이름", "테마 설명",
                         "https://roomescape.com/images/themes/ring-banner.png"),
@@ -441,7 +455,7 @@ class ReservationServiceTest {
         void 실패5() {
             Long memberId = 1L;
             Reservation savedReservation = reservationRepository.save(
-                Reservation.create(memberId, LocalDate.of(2026, 5, 3),
+                createReservation(memberId, LocalDate.of(2026, 5, 3),
                     Time.reconstruct(2L, LocalTime.of(13, 0)),
                     Theme.reconstruct(1L, "테마 이름", "테마 설명",
                         "https://roomescape.com/images/themes/ring-banner.png"),
@@ -464,7 +478,7 @@ class ReservationServiceTest {
         void 실패6() {
             Long memberId = 1L;
             Reservation savedReservation = reservationRepository.save(
-                Reservation.create(memberId, LocalDate.of(2026, 1, 2),
+                createReservation(memberId, LocalDate.of(2026, 1, 2),
                     Time.reconstruct(2L, LocalTime.of(13, 0)),
                     Theme.reconstruct(1L, "테마 이름", "테마 설명",
                         "https://roomescape.com/images/themes/ring-banner.png"),
@@ -508,13 +522,13 @@ class ReservationServiceTest {
 
             // given
             Reservation savedReservation = reservationRepository.save(
-                Reservation.create(1L, LocalDate.of(2026, 5, 2),
+                createReservation(1L, LocalDate.of(2026, 5, 2),
                     Time.reconstruct(1L, LocalTime.of(12, 0)),
                     Theme.reconstruct(1L, "테마 이름", "테마 설명",
                         "https://roomescape.com/images/themes/ring-banner.png"),
                     LocalDateTime.of(2026, 1, 1, 0, 0)));
             reservationRepository.save(
-                Reservation.create(2L, LocalDate.of(2026, 5, 3),
+                createReservation(2L, LocalDate.of(2026, 5, 3),
                     Time.reconstruct(2L, LocalTime.of(13, 0)),
                     Theme.reconstruct(1L, "테마 이름", "테마 설명",
                         "https://roomescape.com/images/themes/ring-banner.png"),
@@ -542,13 +556,13 @@ class ReservationServiceTest {
         void 성공() {
             Long memberId = 1L;
             Reservation savedReservation = reservationRepository.save(
-                Reservation.create(memberId, LocalDate.of(2026, 5, 3),
+                createReservation(memberId, LocalDate.of(2026, 5, 3),
                     Time.reconstruct(1L, LocalTime.of(13, 0)),
                     Theme.reconstruct(1L, "테마 이름", "테마 설명",
                         "https://roomescape.com/images/themes/ring-banner.png"),
                     LocalDateTime.of(2026, 1, 1, 0, 0)));
             reservationRepository.save(
-                Reservation.create(2L, LocalDate.of(2026, 5, 4),
+                createReservation(2L, LocalDate.of(2026, 5, 4),
                     Time.reconstruct(2L, LocalTime.of(14, 0)),
                     Theme.reconstruct(1L, "테마 이름", "테마 설명",
                         "https://roomescape.com/images/themes/ring-banner.png"),
@@ -568,7 +582,7 @@ class ReservationServiceTest {
         @DisplayName("다른 사용자의 예약을 삭제하려고 하면 예외가 발생한다.")
         void 실패1() {
             Reservation savedReservation = reservationRepository.save(
-                Reservation.create(1L, LocalDate.of(2026, 5, 3),
+                createReservation(1L, LocalDate.of(2026, 5, 3),
                     Time.reconstruct(1L, LocalTime.of(13, 0)),
                     Theme.reconstruct(1L, "테마 이름", "테마 설명",
                         "https://roomescape.com/images/themes/ring-banner.png"),
@@ -599,7 +613,7 @@ class ReservationServiceTest {
         void 실패3() {
             Long memberId = 1L;
             Reservation savedReservation = reservationRepository.save(
-                Reservation.create(memberId, LocalDate.of(2025, 12, 31),
+                createReservation(memberId, LocalDate.of(2025, 12, 31),
                     Time.reconstruct(1L, LocalTime.of(13, 0)),
                     Theme.reconstruct(1L, "테마 이름", "테마 설명",
                         "https://roomescape.com/images/themes/ring-banner.png"),
