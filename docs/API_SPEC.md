@@ -146,7 +146,8 @@ POST /api/admin/reservations
   "memberId": 1,
   "date": "2026-05-04",
   "timeId": 1,
-  "themeId": 1
+  "themeId": 1,
+  "storeId": 1
 }
 ```
 
@@ -160,7 +161,8 @@ POST /api/admin/reservations
   "name": "서여",
   "date": "2026-05-04",
   "timeId": 1,
-  "themeId": 1
+  "themeId": 1,
+  "storeId": 1
 }
 ```
 
@@ -231,6 +233,10 @@ GET /api/admin/reservations
       "name": "피온피온",
       "description": "설명",
       "imageUrl": "https://roomescape.com/images/themes/ring-banner.png"
+    },
+    "store": {
+      "id": 1,
+      "name": "강남점"
     }
   },
   {
@@ -245,6 +251,10 @@ GET /api/admin/reservations
       "name": "피온피온",
       "description": "설명",
       "imageUrl": "https://roomescape.com/images/themes/prison-banner.png"
+    },
+    "store": {
+      "id": 1,
+      "name": "강남점"
     }
   }
 ]
@@ -523,6 +533,209 @@ DELETE /api/admin/themes/{id}
 | `404` | 요청한 테마를 찾을 수 없습니다.      | 요청한 테마가 존재하지 않는 경우           |  
 | `409` | 요청한 테마를 참조하는 예약이 존재합니다. | 요청한 테마를 다른 예약이 참조하고 있는 경우    |
 
+### 매니저 예약 생성
+
+#### URL
+
+```http
+POST /api/manager/reservations
+```
+
+#### Headers
+
+| 헤더명             | 타입     | 설명               | 필수 여부 |
+|:----------------|:-------|:-----------------|:------|
+| `Authorization` | String | `Bearer {token}` | O     |
+
+#### Query Parameters
+
+없음
+
+#### Request Body
+
+```json
+{
+  "memberId": 1,
+  "date": "2026-05-04",
+  "timeId": 1,
+  "themeId": 1,
+  "storeId": 1
+}
+```
+
+#### Response Body - Success
+
+##### 201 Created
+
+```json
+{
+  "id": 1,
+  "name": "서여",
+  "date": "2026-05-04",
+  "timeId": 1,
+  "themeId": 1,
+  "storeId": 1
+}
+```
+
+#### Response Body - Failure
+
+##### Example
+
+```json
+{
+  "timestamp": "2026-05-11T18:39:29",
+  "message": "요청 형식이 잘못되었습니다.",
+  "errors": [
+    {
+      "field": "id",
+      "value": "a",
+      "message": "id는 정수여야 합니다."
+    }
+  ]
+}
+```
+
+##### Error Responses
+
+| 상태 코드 | 메시지                | 설명                                              |
+|:-----:|:-------------------|:------------------------------------------------|
+| `400` | 요청 형식이 잘못되었습니다.    | 데이터 형식이 틀리거나 필수 파라미터가 누락된 경우, 참조 id가 존재하지 않는 경우 |
+| `401` | 인증이 필요합니다.         | 토큰이 없거나 만료되었거나 유효하지 않은 경우                       |
+| `403` | 권한이 없습니다.          | 매니저 권한이 없는 경우, 다른 매장의 예약 생성을 시도하는 경우            |
+| `409` | 이미 존재하는 예약입니다.     | 같은 날짜, 시간 및 테마를 가진 예약이 존재하는 경우                  |
+| `422` | 지난 예약은 접근할 수 없습니다. | 지난 날짜 및 시간에 예약을 시도하는 경우                         |
+
+### 매니저 예약 조회
+
+#### URL
+
+```http
+GET /api/manager/reservations
+```
+
+#### Headers
+
+| 헤더명             | 타입     | 설명               | 필수 여부 |
+|:----------------|:-------|:-----------------|:------|
+| `Authorization` | String | `Bearer {token}` | O     |
+
+#### Query Parameters
+
+없음
+
+#### Request Body
+
+None
+
+#### Response Body - Success
+
+##### 200 OK
+
+```json
+{
+  "id": 1,
+  "name": "서여",
+  "date": "2026-05-04",
+  "timeId": 1,
+  "themeId": 1,
+  "storeId": 1
+}
+```
+
+##### Error Responses
+
+| 상태 코드 | 메시지                | 설명                             |
+|:-----:|:-------------------|:-------------------------------|
+| `401` | 인증이 필요합니다.         | 토큰이 없거나 만료되었거나 유효하지 않은 경우      |
+| `403` | 권한이 없습니다.          | 매니저 권한이 없는 경우                  |
+| `409` | 이미 존재하는 예약입니다.     | 같은 날짜, 시간 및 테마를 가진 예약이 존재하는 경우 |
+| `422` | 지난 예약은 접근할 수 없습니다. | 지난 날짜 및 시간에 예약을 시도하는 경우        | 
+
+### 매니저 예약 수정
+
+#### URL
+
+```http
+PATCH /api/manager/reservations/{id}
+```
+
+#### Headers
+
+| 헤더명             | 타입     | 설명               | 필수 여부 |
+|:----------------|:-------|:-----------------|:------|
+| `Authorization` | String | `Bearer {token}` | O     |
+
+#### Query Parameters
+
+없음
+
+#### Request Body
+
+```json
+{
+  "date": "2026-05-12",
+  "timeId": 1
+}
+```
+
+#### Response Body - Success
+
+##### 204 No Content
+
+None
+
+#### Error Responses
+
+| 상태 코드 | 메시지                   | 설명                                              |
+|:-----:|:----------------------|:------------------------------------------------|
+| `400` | 요청 형식이 잘못되었습니다.       | 데이터 형식이 틀리거나 필수 파라미터가 누락된 경우, 참조 id가 존재하지 않는 경우 |
+| `400` | 요청 본문의 형식이 잘못되었습니다.   | 요청 본문 중 누락된 필드가 존재하는 경우, 참조 id가 존재하지 않는 경우      |
+| `401` | 인증이 필요합니다.            | 토큰이 없거나 만료되었거나 유효하지 않은 경우                       |
+| `403` | 요청한 예약에 접근할 권한이 없습니다. | 매니저 권한이 없는 경우, 다른 매장 예약 데이터에 접근하는 경우            |
+| `404` | 요청한 예약을 찾을 수 없습니다.    | 요청한 예약이 아직 존재하지 않는 경우                           |
+| `409` | 이미 존재하는 예약입니다.        | 변경하려는 날짜 또는 시간에 이미 예약이 존재하는 경우                  |
+| `422` | 지난 예약은 접근할 수 없습니다.    | 과거의 예약 변경을 시도하는 경우                              |
+| `422` | 지난 시점으로는 변경할 수 없습니다.  | 과거 날짜 및 시간으로 변경하려는 경우                           |
+
+### 매니저 예약 삭제
+
+#### URL
+
+```http
+DELETE /api/manager/reservations/{id}
+```
+
+#### Headers
+
+| 헤더명             | 타입     | 설명               | 필수 여부 |
+|:----------------|:-------|:-----------------|:------|
+| `Authorization` | String | `Bearer {token}` | O     |
+
+#### Query Parameters
+
+없음
+
+#### Request Body
+
+None
+
+#### Response Body - Success
+
+##### 204 No Content
+
+None
+
+#### Error Responses
+
+| 상태 코드 | 메시지                   | 설명                                              |
+|:-----:|:----------------------|:------------------------------------------------|
+| `400` | 요청 형식이 잘못되었습니다.       | 데이터 형식이 틀리거나 필수 파라미터가 누락된 경우, 참조 id가 존재하지 않는 경우 |
+| `401` | 인증이 필요합니다.            | 토큰이 없거나 만료되었거나 유효하지 않은 경우                       |
+| `403` | 요청한 예약에 접근할 권한이 없습니다. | 매니저 권한이 없는 경우, 다른 매장 예약 데이터에 접근하는 경우            |
+| `404` | 요청한 예약을 찾을 수 없습니다.    | 요청한 예약이 아직 존재하지 않는 경우                           |
+| `422` | 지난 예약은 접근할 수 없습니다.    | 지난 예약을 취소하려고 하는 경우                              |
+
 ### 사용자 테마 조회
 
 #### URL
@@ -559,6 +772,48 @@ GET /api/themes
   }
 ]
 ```
+
+### 사용자 지점 조회
+
+#### URL
+
+```http
+GET /api/stores
+```
+
+#### Headers
+
+| 헤더명             | 타입     | 설명               | 필수 여부 |
+|:----------------|:-------|:-----------------|:------|
+| `Authorization` | String | `Bearer {token}` | O     |
+
+#### Query Parameters
+
+없음
+
+#### Request Body
+
+None
+
+#### Response Body - Success
+
+##### 204 No Content
+
+```json
+[
+  {
+    "id": 1,
+    "name": "강남점"
+  }
+]
+```
+
+#### Error Responses
+
+| 상태 코드 | 메시지             | 설명                                              |
+|:-----:|:----------------|:------------------------------------------------|
+| `400` | 요청 형식이 잘못되었습니다. | 데이터 형식이 틀리거나 필수 파라미터가 누락된 경우, 참조 id가 존재하지 않는 경우 |
+| `401` | 인증이 필요합니다.      | 토큰이 없거나 만료되었거나 유효하지 않은 경우                       |
 
 ### 사용자 예약 조회
 
@@ -601,6 +856,10 @@ GET /api/reservations
       "name": "링",
       "description": "이것은 링 방탈출 설명입니다.",
       "imageUrl": "https://roomescape.com/images/themes/ring.png"
+    },
+    "store": {
+      "id": 1,
+      "name": "강남점"
     }
   },
   {
@@ -616,6 +875,10 @@ GET /api/reservations
       "name": "감옥",
       "description": "이것은 감옥 방탈출 설명입니다.",
       "imageUrl": "https://roomescape.com/images/themes/prison-room.png"
+    },
+    "store": {
+      "id": 1,
+      "name": "강남점"
     }
   }
 ]
@@ -654,7 +917,8 @@ POST /api/reservations
 {
   "date": "2026-05-12",
   "timeId": 1,
-  "themeId": 1
+  "themeId": 1,
+  "storeId": 1
 }
 ```
 
@@ -770,7 +1034,7 @@ None
 #### URL
 
 ```http
-GET /api/times?date={date}&themeId={themeId}
+GET /api/times?date={date}&themeId={themeId}&storeId={storeId}
 ```
 
 #### Query Parameters
@@ -779,6 +1043,7 @@ GET /api/times?date={date}&themeId={themeId}
 |---------|-------|--------|-----------|------------|
 | date    | O     | Date   | 예약할 날짜    | 2026-05-12 |
 | themeId | O     | BigInt | 예약할 테마 ID | 1          |
+| storeId | O     | BigInt | 예약할 지점 ID | 1          |
 
 #### Request Body
 
@@ -803,10 +1068,10 @@ GET /api/times?date={date}&themeId={themeId}
 
 #### Error Responses
 
-| 상태 코드 | 메시지                   | 설명                                              |  
-|:-----:|:----------------------|:------------------------------------------------|
-| `400` | 요청 형식이 잘못되었습니다.       | 데이터 형식이 틀리거나 필수 파라미터가 누락된 경우, 테마 id가 존재하지 않는 경우 |  
-| `422` | 지난 날짜로 시간 조회를 시도했습니다. | 이전 날짜로 조회하려고 하는 경우                              |  
+| 상태 코드 | 메시지                   | 설명                                                    |  
+|:-----:|:----------------------|:------------------------------------------------------|
+| `400` | 요청 형식이 잘못되었습니다.       | 데이터 형식이 틀리거나 필수 파라미터가 누락된 경우, 테마 또는 지점 id가 존재하지 않는 경우 |  
+| `422` | 지난 날짜로 시간 조회를 시도했습니다. | 이전 날짜로 조회하려고 하는 경우                                    |  
 
 ### 사용자 인기 테마 조회
 

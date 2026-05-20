@@ -14,6 +14,7 @@
 - [API 명세서](#api-명세서)
     - [공통 인증 API](#공통-인증-api)
     - [관리자 API](#관리자-API)
+    - [매니저 API](#매니저-API)
     - [사용자 API](#사용자-api)
 - [클라이언트 기능](#클라이언트-기능)
     - [공통](#공통)
@@ -56,6 +57,15 @@
 | 테마 추가 | POST   | `/api/admin/themes`            | 201 Created    | 400, 401, 403, 409      | [상세](docs/API_SPEC.md#관리자-테마-추가) |
 | 테마 삭제 | DELETE | `/api/admin/themes/{id}`       | 204 No Content | 400, 401, 403, 404, 409 | [상세](docs/API_SPEC.md#관리자-테마-삭제) |
 
+### 매니저 API
+
+| API   | Method | Path                             | 성공 응답          | 주요 실패 응답                     | 상세                               |
+|-------|--------|----------------------------------|----------------|------------------------------|----------------------------------|
+| 예약 생성 | POST   | `/api/manager/reservations`      | 201 Created    | 400, 401, 403, 409, 422      | [상세](docs/API_SPEC.md#매니저-예약-생성) |
+| 예약 조회 | GET    | `/api/manager/reservations`      | 200 OK         | 400, 401  403                | [상세](docs/API_SPEC.md#매니저-예약-조회) |
+| 예약 수정 | PATCH  | `/api/manager/reservations/{id}` | 204 No Content | 400, 401  403, 404, 409, 422 | [상세](docs/API_SPEC.md#매니저-예약-수정) |
+| 예약 삭제 | DELETE | `/api/manager/reservations/{id}` | 204 No Content | 400, 403, 401, 404           | [상세](docs/API_SPEC.md#매니저-예약-삭제) |
+
 ### 사용자 API
 
 | API         | Method | Path                                                                        | 성공 응답          | 주요 실패 응답                     | 상세                                      |
@@ -66,7 +76,7 @@
 | 예약 생성       | POST   | `/api/reservations`                                                         | 201 Created    | 400, 401, 409, 422           | [상세](docs/API_SPEC.md#사용자-예약-생성)        |
 | 예약 수정       | PATCH  | `/api/reservations/{id}`                                                    | 204 No Content | 400, 401, 403, 404, 409, 422 | [상세](docs/API_SPEC.md#사용자-예약-수정)        |
 | 예약 취소       | DELETE | `/api/reservations/{id}`                                                    | 204 No Content | 400, 401, 403, 404, 422      | [상세](docs/API_SPEC.md#사용자-예약-취소)        |
-| 예약 가능 시간 조회 | GET    | `/api/times?date={date}&themeId={themeId}`                                  | 200 OK         | 400, 422                     | [상세](docs/API_SPEC.md#사용자-예약-가능한-시간-조회) |
+| 예약 가능 시간 조회 | GET    | `/api/times?date={date}&themeId={themeId}%storeId={storeId}`                | 200 OK         | 400, 422                     | [상세](docs/API_SPEC.md#사용자-예약-가능한-시간-조회) |
 | 인기 테마 조회    | GET    | `/api/themes/popular?startDate={startDate}&endDate={endDate}&limit={limit}` | 200 OK         | 400, 422                     | [상세](docs/API_SPEC.md#사용자-인기-테마-조회)     |
 
 ## 클라이언트 기능
