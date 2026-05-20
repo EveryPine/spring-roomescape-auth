@@ -43,7 +43,8 @@ class TimeApiTest {
             given()
                 .params(Map.of(
                     "date", date,
-                    "themeId", 1
+                    "themeId", 1,
+                    "storeId", 1
                 ))
                 .when()
                 .get("/api/times")
@@ -56,7 +57,8 @@ class TimeApiTest {
         void 실패1() {
             given()
                 .params(Map.of(
-                    "date", "2026-05-10"
+                    "date", "2026-05-10",
+                    "storeId", 1
                 ))
                 .when()
                 .get("/api/times")
@@ -72,7 +74,8 @@ class TimeApiTest {
             given()
                 .params(Map.of(
                     "date", "2026-05-10",
-                    "themeId", 0
+                    "themeId", 0,
+                    "storeId", 1
                 ))
                 .when()
                 .get("/api/times")
@@ -91,7 +94,8 @@ class TimeApiTest {
             given()
                 .params(Map.of(
                     "date", wrongDate,
-                    "themeId", 1
+                    "themeId", 1,
+                    "storeId", 1
                 ))
                 .when()
                 .get("/api/times")

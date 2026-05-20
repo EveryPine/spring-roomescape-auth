@@ -36,20 +36,23 @@ public class FakeReservationRepository implements ReservationRepository {
     }
 
     @Override
-    public Optional<Reservation> findReservationByDateTimeAndThemeId(LocalDate date, Long timeId,
-        Long themeId) {
+    public Optional<Reservation> findReservationByDateTimeThemeIdAndStoreId(LocalDate date,
+        Long timeId, Long themeId, Long storeId) {
         return reservations.stream()
             .filter(reservation -> Objects.equals(reservation.getDate(), date))
             .filter(reservation -> Objects.equals(reservation.getTime().getId(), timeId))
             .filter(reservation -> Objects.equals(reservation.getTheme().getId(), themeId))
+            .filter(reservation -> Objects.equals(reservation.getStore().getId(), storeId))
             .findFirst();
     }
 
     @Override
-    public List<Long> findTimeIdsByDateAndThemeId(LocalDate localDate, Long themeId) {
+    public List<Long> findTimeIdsByDateThemeIdAndStoreId(LocalDate localDate, Long themeId,
+        Long storeId) {
         return reservations.stream()
             .filter(reservation -> reservation.getDate().equals(localDate))
             .filter(reservation -> reservation.getTheme().getId().equals(themeId))
+            .filter(reservation -> reservation.getStore().getId().equals(storeId))
             .map(Reservation::getTime)
             .map(Time::getId)
             .toList();
@@ -62,6 +65,7 @@ public class FakeReservationRepository implements ReservationRepository {
             reservation.getDate(),
             reservation.getTime(),
             reservation.getTheme(),
+            reservation.getStore(),
             LocalDateTime.MIN
         ).withId(id.addAndGet(1));
         reservations.add(savedReservation);
@@ -95,6 +99,7 @@ public class FakeReservationRepository implements ReservationRepository {
                 date,
                 Time.reconstruct(timeId, time.getStartAt()),
                 reservation.getTheme(),
+                reservation.getStore(),
                 LocalDateTime.MIN
             ).withId(reservation.getId());
             reservations.set(i, updatedReservation);

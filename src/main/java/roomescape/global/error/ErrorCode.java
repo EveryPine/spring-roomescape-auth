@@ -17,6 +17,8 @@ public enum ErrorCode {
     MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "요청한 이용자가 존재하지 않습니다."),
     MEMBER_DUPLICATE(HttpStatus.CONFLICT, "이미 존재하는 이용자입니다."),
 
+    STORE_NOT_FOUND(HttpStatus.NOT_FOUND, "요청한 지점을 찾을 수 없습니다."),
+
     RESERVATION_FORBIDDEN(HttpStatus.FORBIDDEN, "요청한 예약에 접근할 권한이 없습니다."),
     RESERVATION_NOT_FOUND(HttpStatus.NOT_FOUND, "요청한 예약을 찾을 수 없습니다."),
     RESERVATION_DUPLICATE(HttpStatus.CONFLICT, "이미 존재하는 예약입니다."),

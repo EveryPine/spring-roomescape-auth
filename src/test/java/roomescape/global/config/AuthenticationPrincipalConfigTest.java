@@ -77,6 +77,13 @@ class AuthenticationPrincipalConfigTest {
     }
 
     @Test
+    @DisplayName("지점 조회 API는 토큰이 없으면 401을 반환한다.")
+    void 지점_조회_API_인증_실패() {
+        given().when().get("/api/stores").then().statusCode(401)
+            .body("message", equalTo(ErrorCode.AUTH_UNAUTHORIZED.getMessage()));
+    }
+
+    @Test
     @DisplayName("로그아웃 API는 유효한 토큰이면 204를 반환한다.")
     void 로그아웃_API_성공() {
         given().header("Authorization", "Bearer " + token(Role.USER))

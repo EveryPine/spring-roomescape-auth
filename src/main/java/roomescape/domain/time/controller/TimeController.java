@@ -29,9 +29,10 @@ public class TimeController {
     @GetMapping("/times")
     public ResponseEntity<List<TimeResponseDto>> getAvailableTimes(
         @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate date,
-        @RequestParam @Min(value = 1, message = "테마 id는 1 이상이어야 합니다.") Long themeId
+        @RequestParam @Min(value = 1, message = "테마 id는 1 이상이어야 합니다.") Long themeId,
+        @RequestParam @Min(value = 1, message = "지점 id는 1 이상이어야 합니다.") Long storeId
     ) {
         return ResponseEntity.status(HttpStatus.OK)
-            .body(timeService.getAvailableTimes(date, themeId, LocalDateTime.now()));
+            .body(timeService.getAvailableTimes(date, themeId, storeId, LocalDateTime.now()));
     }
 }

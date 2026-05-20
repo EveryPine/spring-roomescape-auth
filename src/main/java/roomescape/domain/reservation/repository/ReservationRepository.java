@@ -13,9 +13,10 @@ public interface ReservationRepository {
 
     Optional<Reservation> findReservationById(Long id);
 
-    Optional<Reservation> findReservationByDateTimeAndThemeId(LocalDate date, Long timeId, Long themeId);
+    Optional<Reservation> findReservationByDateTimeThemeIdAndStoreId(LocalDate date, Long timeId,
+        Long themeId, Long storeId);
 
-    List<Long> findTimeIdsByDateAndThemeId(LocalDate localDate, Long themeId);
+    List<Long> findTimeIdsByDateThemeIdAndStoreId(LocalDate localDate, Long themeId, Long storeId);
 
     Reservation save(Reservation reservation);
 

@@ -23,6 +23,12 @@
       <input type="hidden" id="themeId">
     </div>
     <div class="mb-3">
+      <label>지점</label>
+      <select id="storeId" class="form-select" onchange="loadTimes()" required>
+        <option value="">지점 로딩 중...</option>
+      </select>
+    </div>
+    <div class="mb-3">
       <label>날짜</label>
       <input type="date" id="date" class="form-control" data-previous-date="" onchange="handleDateChange()" required>
     </div>
@@ -94,6 +100,7 @@
     }
 
     document.getElementById('name').value = savedName;
+    await loadStores();
 
     if (!themeIdFromUrl) {
       alert('잘못된 접근입니다.');
@@ -141,11 +148,12 @@
   async function loadTimes() {
     const date = getVal('date');
     const themeId = getVal('themeId');
+    const storeId = getVal('storeId');
 
-    if (!date || !themeId) return;
+    if (!date || !themeId || !storeId) return;
 
     try {
-      const response = await fetch(`/api/times?date=${date}&themeId=${themeId}`);
+      const response = await fetch(`/api/times?date=${date}&themeId=${themeId}&storeId=${storeId}`);
       const times = await response.json();
 
       const timeSelect = document.getElementById('timeId');
@@ -162,13 +170,34 @@
     }
   }
 
+  async function loadStores() {
+    try {
+      const headers = authHeaders();
+      if (!headers) return;
+
+      const response = await fetch('/api/stores', {headers});
+      const stores = await response.json();
+      const storeSelect = document.getElementById('storeId');
+
+      if (stores.length === 0) {
+        storeSelect.innerHTML = '<option value="">선택 가능한 지점이 없습니다</option>';
+        return;
+      }
+
+      storeSelect.innerHTML = stores.map(store => `<option value="${store.id}">${store.name}</option>`).join('');
+    } catch (error) {
+      console.error('지점 정보를 불러오는데 실패했습니다:', error);
+    }
+  }
+
   async function submitReservation() {
     const name = getVal('name');
     const date = getVal('date');
     const timeId = getVal('timeId');
     const themeId = getVal('themeId');
+    const storeId = getVal('storeId');
 
-    if (!name || !date || !timeId || !themeId) {
+    if (!name || !date || !timeId || !themeId || !storeId) {
       alert("모든 항목을 입력해주세요.");
       return;
     }
@@ -176,7 +205,7 @@
     const headers = authHeaders({ 'Content-Type': 'application/json' });
     if (!headers) return;
 
-    const body = { date, timeId, themeId };
+    const body = { date, timeId, themeId, storeId };
 
     try {
       const response = await fetch('/api/reservations', {

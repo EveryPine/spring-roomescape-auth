@@ -20,6 +20,7 @@ import roomescape.domain.reservation.dto.response.ReservationResponseDto;
 import roomescape.domain.reservation.entity.Reservation;
 import roomescape.domain.reservation.repository.FakeReservationRepository;
 import roomescape.domain.reservation.repository.ReservationRepository;
+import roomescape.domain.store.repository.FakeStoreRepository;
 import roomescape.domain.theme.dto.response.ThemeResponseDto;
 import roomescape.domain.theme.entity.Theme;
 import roomescape.domain.theme.repository.FakeThemeRepository;
@@ -38,13 +39,15 @@ class ReservationServiceTest {
     private final ReservationRepository reservationRepository;
     private final TimeRepository timeRepository;
     private final ThemeRepository themeRepository;
+    private final StoreRepository storeRepository;
 
     ReservationServiceTest() {
         this.reservationRepository = new FakeReservationRepository();
         this.timeRepository = new FakeTimeRepository();
         this.themeRepository = new FakeThemeRepository();
+        this.storeRepository = new FakeStoreRepository();
         this.reservationService = new ReservationService(reservationRepository, timeRepository,
-            themeRepository);
+            themeRepository, storeRepository);
     }
 
     @Nested

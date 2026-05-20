@@ -82,7 +82,8 @@ class ReservationApiTest {
                 .body(Map.of(
                     "date", "2026-12-31",
                     "timeId", 1L,
-                    "themeId", 1L
+                    "themeId", 1L,
+                    "storeId", 1L
                 ))
                 .when()
                 .post("/api/reservations")
@@ -99,7 +100,8 @@ class ReservationApiTest {
                 .contentType(ContentType.JSON)
                 .body(Map.of(
                     "timeId", 1L,
-                    "themeId", 1L
+                    "themeId", 1L,
+                    "storeId", 1L
                 ))
                 .when()
                 .post("/api/reservations")
@@ -140,7 +142,8 @@ class ReservationApiTest {
                 .body(Map.of(
                     "date", wrongDate,
                     "timeId", 1L,
-                    "themeId", 1L
+                    "themeId", 1L,
+                    "storeId", 1L
                 ))
                 .when()
                 .post("/api/reservations")
@@ -292,7 +295,8 @@ class ReservationApiTest {
             .body(Map.of(
                 "date", date,
                 "timeId", timeId,
-                "themeId", themeId
+                "themeId", themeId,
+                "storeId", 1L
             ))
             .when()
             .post("/api/reservations")

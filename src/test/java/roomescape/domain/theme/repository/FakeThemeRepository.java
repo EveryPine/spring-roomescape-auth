@@ -29,6 +29,7 @@ public class FakeThemeRepository implements ThemeRepository {
                 reservation.getDate(),
                 reservation.getTime(),
                 reservation.getTheme(),
+                reservation.getStore(),
                 LocalDateTime.MIN
             ).withId(reservationId.addAndGet(1)))
             .toList();

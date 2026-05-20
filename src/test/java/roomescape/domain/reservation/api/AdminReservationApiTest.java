@@ -69,7 +69,8 @@ class AdminReservationApiTest {
                     "memberId", 1L,
                     "date", "2026-12-31",
                     "timeId", 1L,
-                    "themeId", 1L
+                    "themeId", 1L,
+                    "storeId", 1L
                 ))
                 .when()
                 .post("/api/admin/reservations")
@@ -87,7 +88,8 @@ class AdminReservationApiTest {
                 .body(Map.of(
                     "date", "2026-12-31",
                     "timeId", 1L,
-                    "themeId", 1L
+                    "themeId", 1L,
+                    "storeId", 1L
                 ))
                 .when()
                 .post("/api/admin/reservations")
@@ -130,7 +132,8 @@ class AdminReservationApiTest {
                     "memberId", 1L,
                     "date", wrongDate,
                     "timeId", 1L,
-                    "themeId", 1L
+                    "themeId", 1L,
+                    "storeId", 1L
                 ))
                 .when()
                 .post("/api/admin/reservations")
@@ -168,8 +171,9 @@ class AdminReservationApiTest {
                 "memberId", 1L,
                 "date", "2026-12-31",
                 "timeId", 1L,
-                "themeId", 1L
-            ))
+                "themeId", 1L,
+                    "storeId", 1L
+                ))
             .when()
             .post("/api/admin/reservations")
             .then()

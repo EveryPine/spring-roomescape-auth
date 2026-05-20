@@ -77,6 +77,12 @@
         </select>
       </div>
       <div class="col-md-2">
+        <label for="reservationStoreId" class="form-label">지점</label>
+        <select id="reservationStoreId" class="form-select" required>
+          <option value="">지점을 선택하세요</option>
+        </select>
+      </div>
+      <div class="col-md-2">
         <label for="reservationTimeId" class="form-label">시간</label>
         <select id="reservationTimeId" class="form-select" required>
           <option value="">날짜와 테마를 선택하세요</option>
@@ -136,13 +142,14 @@
           <th>회원 ID</th>
           <th>날짜</th>
           <th>테마</th>
+          <th>지점</th>
           <th>시간</th>
           <th>삭제</th>
         </tr>
         </thead>
         <tbody id="reservationList">
         <tr>
-          <td colspan="7" class="text-center text-muted py-4">로딩 중...</td>
+          <td colspan="8" class="text-center text-muted py-4">로딩 중...</td>
         </tr>
         </tbody>
       </table>
@@ -301,14 +308,14 @@
 
       if (allReservations.length === 0) {
         reservations = [];
-        list.innerHTML = emptyRow(7, '등록된 예약이 없습니다.');
+        list.innerHTML = emptyRow(8, '등록된 예약이 없습니다.');
         renderReservationPagination();
         return;
       }
 
       applyReservationFilters(false);
     } catch (error) {
-      document.getElementById('reservationList').innerHTML = emptyRow(7, '예약 목록을 불러오지 못했습니다.');
+      document.getElementById('reservationList').innerHTML = emptyRow(8, '예약 목록을 불러오지 못했습니다.');
       document.getElementById('reservationPageInfo').innerText = '';
       document.getElementById('reservationPagination').innerHTML = '';
     }
@@ -318,7 +325,7 @@
     const list = document.getElementById('reservationList');
 
     if (reservations.length === 0) {
-      list.innerHTML = emptyRow(7, '조건에 맞는 예약이 없습니다.');
+      list.innerHTML = emptyRow(8, '조건에 맞는 예약이 없습니다.');
       renderReservationPagination();
       return;
     }
@@ -333,6 +340,7 @@
             <td>${res.memberId}</td>
             <td>${res.date}</td>
             <td>${res.theme.name}</td>
+            <td>${res.store.name}</td>
             <td>${res.time.startAt}</td>
             <td><button class="btn btn-danger btn-sm" onclick="deleteReservation(${res.id})">삭제</button></td>
         </tr>
@@ -504,18 +512,31 @@
     }
   }
 
+  async function loadStores() {
+    try {
+      const stores = await requestJson('/api/stores');
+      const reservationStoreSelect = document.getElementById('reservationStoreId');
+
+      reservationStoreSelect.innerHTML = '<option value="">지점을 선택하세요</option>' +
+          stores.map(store => `<option value="${store.id}">${store.name}</option>`).join('');
+    } catch (error) {
+      document.getElementById('reservationStoreId').innerHTML = '<option value="">지점을 불러오지 못했습니다</option>';
+    }
+  }
+
   async function loadAvailableReservationTimes() {
     const date = document.getElementById('reservationDate').value;
     const themeId = document.getElementById('reservationThemeId').value;
+    const storeId = document.getElementById('reservationStoreId').value;
     const timeSelect = document.getElementById('reservationTimeId');
 
-    if (!date || !themeId) {
-      timeSelect.innerHTML = '<option value="">날짜와 테마를 선택하세요</option>';
+    if (!date || !themeId || !storeId) {
+      timeSelect.innerHTML = '<option value="">날짜, 테마, 지점을 선택하세요</option>';
       return;
     }
 
     try {
-      const params = new URLSearchParams({date, themeId});
+      const params = new URLSearchParams({date, themeId, storeId});
       const times = await requestJson(`/api/times?${params.toString()}`);
 
       if (times.length === 0) {
@@ -537,6 +558,7 @@
       memberId: document.getElementById('reservationMemberId').value,
       date: document.getElementById('reservationDate').value,
       themeId: document.getElementById('reservationThemeId').value,
+      storeId: document.getElementById('reservationStoreId').value,
       timeId: document.getElementById('reservationTimeId').value
     };
 
@@ -548,7 +570,7 @@
       });
       event.target.reset();
       document.getElementById(
-          'reservationTimeId').innerHTML = '<option value="">날짜와 테마를 선택하세요</option>';
+          'reservationTimeId').innerHTML = '<option value="">날짜, 테마, 지점을 선택하세요</option>';
       currentReservationPage = 1;
       await loadReservations();
     } catch (error) {
@@ -647,6 +669,8 @@
       loadAvailableReservationTimes);
   document.getElementById('reservationThemeId').addEventListener('change',
       loadAvailableReservationTimes);
+  document.getElementById('reservationStoreId').addEventListener('change',
+      loadAvailableReservationTimes);
   document.getElementById('reservationKeywordFilter').addEventListener('input',
       () => applyReservationFilters());
   document.getElementById('reservationStartDateFilter').addEventListener('change',
@@ -663,6 +687,7 @@
   window.onload = () => {
     loadReservations();
     loadThemes();
+    loadStores();
     loadTimes();
   };
 </script>

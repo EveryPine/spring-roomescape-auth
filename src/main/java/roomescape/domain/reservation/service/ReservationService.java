@@ -15,6 +15,8 @@ import roomescape.domain.reservation.dto.response.ReservationCreateResponseDto;
 import roomescape.domain.reservation.dto.response.ReservationResponseDto;
 import roomescape.domain.reservation.entity.Reservation;
 import roomescape.domain.reservation.repository.ReservationRepository;
+import roomescape.domain.store.entity.Store;
+import roomescape.domain.store.repository.StoreRepository;
 import roomescape.domain.theme.entity.Theme;
 import roomescape.domain.theme.repository.ThemeRepository;
 import roomescape.domain.time.entity.Time;
@@ -29,13 +31,16 @@ public class ReservationService {
     private final ReservationRepository reservationRepository;
     private final TimeRepository timeRepository;
     private final ThemeRepository themeRepository;
+    private final StoreRepository storeRepository;
 
     public ReservationService(ReservationRepository reservationRepository,
         TimeRepository timeRepository,
-        ThemeRepository themeRepository) {
+        ThemeRepository themeRepository,
+        StoreRepository storeRepository) {
         this.reservationRepository = reservationRepository;
         this.timeRepository = timeRepository;
         this.themeRepository = themeRepository;
+        this.storeRepository = storeRepository;
     }
 
     @Transactional
@@ -61,8 +66,9 @@ public class ReservationService {
         ReservationCreateRequestDto requestDto,
         LocalDateTime now) {
         Reservation reservation = createReservation(memberId, requestDto.timeId(),
-            requestDto.themeId(), requestDto.date(), now);
-        validateDuplicates(requestDto.date(), requestDto.timeId(), requestDto.themeId());
+            requestDto.themeId(), requestDto.storeId(), requestDto.date(), now);
+        validateDuplicates(requestDto.date(), requestDto.timeId(), requestDto.themeId(),
+            requestDto.storeId());
         return ReservationCreateResponseDto.from(reservationRepository.save(reservation));
     }
 
@@ -71,21 +77,21 @@ public class ReservationService {
         AdminReservationCreateRequestDto request, LocalDateTime now) {
         Long memberId = request.memberId();
         Reservation reservation = createReservation(memberId, request.timeId(), request.themeId(),
-            request.date(), now);
-        validateDuplicates(request.date(), request.timeId(), request.themeId());
+            request.storeId(), request.date(), now);
+        validateDuplicates(request.date(), request.timeId(), request.themeId(), request.storeId());
         return ReservationCreateResponseDto.from(reservationRepository.save(reservation));
 
     }
 
-    private void validateDuplicates(LocalDate date, Long timeId, Long themeId) {
-        Optional<Reservation> reservation = reservationRepository.findReservationByDateTimeAndThemeId(
-            date, timeId, themeId);
+    private void validateDuplicates(LocalDate date, Long timeId, Long themeId, Long storeId) {
+        Optional<Reservation> reservation = reservationRepository.findReservationByDateTimeThemeIdAndStoreId(
+            date, timeId, themeId, storeId);
         if (reservation.isPresent()) {
             throw new BusinessException(ErrorCode.RESERVATION_DUPLICATE);
         }
     }
 
-    private Reservation createReservation(Long memberId, Long timeId, Long themeId,
+    private Reservation createReservation(Long memberId, Long timeId, Long themeId, Long storeId,
         LocalDate date, LocalDateTime now) {
         Time time = timeRepository.findTimeById(timeId)
             .orElseThrow(() -> new BusinessException(
@@ -98,7 +104,12 @@ public class ReservationService {
                 ErrorCode.COMMON_INVALID_REQUEST_BODY,
                 ErrorDetail.of("themeId", "요청한 테마 id가 존재하지 않습니다.")
             ));
-        return Reservation.create(memberId, date, time, theme, now);
+        Store store = storeRepository.findById(storeId)
+            .orElseThrow(() -> new BusinessException(
+                ErrorCode.COMMON_INVALID_REQUEST_BODY,
+                ErrorDetail.of("storeId", "요청한 지점 id가 존재하지 않습니다.")
+            ));
+        return Reservation.create(memberId, date, time, theme, store, now);
     }
 
     @Transactional
@@ -108,7 +119,7 @@ public class ReservationService {
         validateOwner(memberId, reservation);
         Time time = getTimeById(requestDto.timeId());
         validateDuplicatesExceptMe(id, requestDto.date(), requestDto.timeId(),
-            reservation.getTheme().getId());
+            reservation.getTheme().getId(), reservation.getStore().getId());
         validateDateAccessable(reservation, now);
         validateDateTimeChangeable(requestDto.date(), time, now);
 
@@ -130,9 +141,10 @@ public class ReservationService {
                     ErrorDetail.of("timeId", timeId, "요청한 시간 id가 존재하지 않습니다.")));
     }
 
-    private void validateDuplicatesExceptMe(Long id, LocalDate date, Long timeId, Long themeId) {
-        Optional<Reservation> reservation = reservationRepository.findReservationByDateTimeAndThemeId(
-                date, timeId, themeId)
+    private void validateDuplicatesExceptMe(Long id, LocalDate date, Long timeId, Long themeId,
+        Long storeId) {
+        Optional<Reservation> reservation = reservationRepository.findReservationByDateTimeThemeIdAndStoreId(
+                date, timeId, themeId, storeId)
             .filter(foundReservation -> !Objects.equals(foundReservation.getId(), id));
         if (reservation.isPresent()) {
             throw new BusinessException(ErrorCode.RESERVATION_DUPLICATE);

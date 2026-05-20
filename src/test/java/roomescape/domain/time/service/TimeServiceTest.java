@@ -12,11 +12,10 @@ import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import roomescape.global.error.exception.BusinessException;
-import roomescape.global.error.ErrorCode;
 import roomescape.domain.reservation.entity.Reservation;
 import roomescape.domain.reservation.repository.FakeReservationRepository;
 import roomescape.domain.reservation.repository.ReservationRepository;
+import roomescape.domain.store.repository.FakeStoreRepository;
 import roomescape.domain.theme.entity.Theme;
 import roomescape.domain.theme.repository.FakeThemeRepository;
 import roomescape.domain.theme.repository.ThemeRepository;
@@ -25,19 +24,24 @@ import roomescape.domain.time.dto.response.TimeResponseDto;
 import roomescape.domain.time.entity.Time;
 import roomescape.domain.time.repository.FakeTimeRepository;
 import roomescape.domain.time.repository.TimeRepository;
+import roomescape.global.error.ErrorCode;
+import roomescape.global.error.exception.BusinessException;
 
 class TimeServiceTest {
 
     private final TimeService timeService;
     private final TimeRepository timeRepository;
     private final ThemeRepository themeRepository;
+    private final StoreRepository storeRepository;
     private final ReservationRepository reservationRepository;
 
     TimeServiceTest() {
         this.themeRepository = new FakeThemeRepository();
+        this.storeRepository = new FakeStoreRepository();
         this.timeRepository = new FakeTimeRepository();
         this.reservationRepository = new FakeReservationRepository();
-        this.timeService = new TimeService(reservationRepository, themeRepository, timeRepository);
+        this.timeService = new TimeService(reservationRepository, themeRepository, storeRepository,
+            timeRepository);
     }
 
     @Nested
@@ -122,7 +126,7 @@ class TimeServiceTest {
                 TimeResponseDto.from(time3), TimeResponseDto.from(time4));
 
             // when
-            List<TimeResponseDto> actual = timeService.getAvailableTimes(date, themeId,
+            List<TimeResponseDto> actual = timeService.getAvailableTimes(date, themeId, 1L,
                 LocalDateTime.of(2026, 1, 1, 0, 0));
 
             // then
@@ -135,7 +139,7 @@ class TimeServiceTest {
             LocalDate date = LocalDate.of(2026, 5, 10);
             Long wrongThemeId = 1L;
 
-            assertThatThrownBy(() -> timeService.getAvailableTimes(date, wrongThemeId,
+            assertThatThrownBy(() -> timeService.getAvailableTimes(date, wrongThemeId, 1L,
                 LocalDateTime.of(2026, 1, 1, 0, 0)))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
@@ -149,7 +153,7 @@ class TimeServiceTest {
             LocalDate date = LocalDate.of(2025, 1, 1);
             Long themeId = theme.getId();
 
-            assertThatThrownBy(() -> timeService.getAvailableTimes(date, themeId,
+            assertThatThrownBy(() -> timeService.getAvailableTimes(date, themeId, 1L,
                 LocalDateTime.of(2026, 1, 1, 0, 0)))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")

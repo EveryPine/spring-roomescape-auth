@@ -36,6 +36,8 @@
 
 인증이 필요한 API는 JWT access token을 사용합니다. 로그인 성공 시 응답되는 `token`을 `Authorization: Bearer {token}` 헤더에 담아
 요청합니다.
+인증 실패 시 원인에 따라 401 응답 메시지는 `인증되지 않은 이용자입니다.`, `만료된 토큰입니다.`, `유효하지 않은 토큰입니다.` 중 하나로
+반환됩니다. 관리자 API에 일반 사용자 토큰으로 접근하면 403 `접근할 권한이 없습니다.`가 반환됩니다.
 
 ### 공통 인증 API
 
@@ -48,9 +50,9 @@
 
 | API   | Method | Path                           | 성공 응답          | 주요 실패 응답                | 상세                               |
 |-------|--------|--------------------------------|----------------|-------------------------|----------------------------------|
-| 예약 생성 | POST   | `/api/admin/reservations`      | 201 Created    | 400, 403, 401, 409, 422 | [상세](docs/API_SPEC.md#관리자-예약-생성) |
-| 예약 조회 | GET    | `/api/admin/reservations`      | 200 OK         | 401  403                | [상세](docs/API_SPEC.md#관리자-예약-조회) |
-| 예약 삭제 | DELETE | `/api/admin/reservations/{id}` | 204 No Content | 400, 403, 401, 404      | [상세](docs/API_SPEC.md#관리자-예약-삭제) |
+| 예약 생성 | POST   | `/api/admin/reservations`      | 201 Created    | 400, 401, 403, 409, 422 | [상세](docs/API_SPEC.md#관리자-예약-생성) |
+| 예약 조회 | GET    | `/api/admin/reservations`      | 200 OK         | 401, 403                | [상세](docs/API_SPEC.md#관리자-예약-조회) |
+| 예약 삭제 | DELETE | `/api/admin/reservations/{id}` | 204 No Content | 400, 401, 403, 404      | [상세](docs/API_SPEC.md#관리자-예약-삭제) |
 | 시간 조회 | GET    | `/api/admin/times`             | 200 OK         | 401, 403                | [상세](docs/API_SPEC.md#관리자-시간-조회) |
 | 시간 생성 | POST   | `/api/admin/times`             | 201 Created    | 400, 401, 403, 409      | [상세](docs/API_SPEC.md#관리자-시간-생성) |
 | 시간 삭제 | DELETE | `/api/admin/times/{id}`        | 204 No Content | 400, 401, 403, 404, 409 | [상세](docs/API_SPEC.md#관리자-시간-삭제) |

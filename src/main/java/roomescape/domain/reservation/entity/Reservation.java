@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Objects;
+import roomescape.domain.store.entity.Store;
 import roomescape.domain.theme.entity.Theme;
 import roomescape.domain.time.entity.Time;
 import roomescape.global.error.ErrorCode;
@@ -13,46 +14,39 @@ public class Reservation {
 
     private final Long id;
     private final Long memberId;
-    private final String memberName;
     private final LocalDate date;
     private final Time time;
     private final Theme theme;
+    private final Store store;
 
-    private Reservation(Long id, Long memberId, LocalDate date, Time time, Theme theme,
+    private Reservation(Long memberId, LocalDate date, Time time, Theme theme, Store store,
         LocalDateTime now) {
         validateDateTime(date, time, now);
-        this.id = id;
+        this.id = null;
         this.memberId = memberId;
-        this.memberName = null;
         this.date = date;
         this.time = time;
         this.theme = theme;
+        this.store = store;
     }
 
-    private Reservation(Long id, Long memberId, String memberName, LocalDate date, Time time,
-        Theme theme) {
+    private Reservation(Long id, Long memberId, LocalDate date, Time time,
+        Theme theme, Store store) {
         this.id = id;
         this.memberId = memberId;
-        this.memberName = memberName;
         this.date = date;
         this.time = time;
         this.theme = theme;
+        this.store = store;
     }
-
 
     public static Reservation create(Long memberId, LocalDate date, Time time,
-        Theme theme, LocalDateTime now) {
-        return new Reservation(null, memberId, date, time, theme, now);
+        Theme theme, Store store, LocalDateTime now) {
+        return new Reservation(memberId, date, time, theme, store, now);
     }
 
     public Reservation withId(Long id) {
-        return new Reservation(id, this.memberId, this.memberName, this.date, this.time,
-            this.theme);
-    }
-
-    public Reservation withMemberName(String memberName) {
-        return new Reservation(this.id, this.memberId, memberName, this.date, this.time,
-            this.theme);
+        return new Reservation(id, this.memberId, this.date, this.time, this.theme, this.store);
     }
 
     private void validateDateTime(LocalDate date, Time time, LocalDateTime now) {
@@ -79,10 +73,6 @@ public class Reservation {
         return memberId;
     }
 
-    public String getMemberName() {
-        return memberName;
-    }
-
     public boolean isOwner(Long memberId) {
         return Objects.equals(this.memberId, memberId);
     }
@@ -97,6 +87,10 @@ public class Reservation {
 
     public Theme getTheme() {
         return theme;
+    }
+
+    public Store getStore() {
+        return store;
     }
 
     @Override

@@ -14,6 +14,9 @@ public record AdminReservationCreateRequestDto(@NotNull(message = "예약 날짜
                                                Long timeId,
                                                @NotNull(message = "테마를 선택해주세요.")
                                                @Min(value = 1, message = "테마 id는 1 이상이어야 합니다.")
-                                               Long themeId) {
+                                               Long themeId,
+                                               @NotNull(message = "지점을 선택해주세요.")
+                                               @Min(value = 1, message = "지점 id는 1 이상이어야 합니다.")
+                                               Long storeId) {
 
 }

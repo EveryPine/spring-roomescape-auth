@@ -36,6 +36,7 @@
         <thead class="table-light">
         <tr>
           <th>테마</th>
+          <th>지점</th>
           <th>날짜</th>
           <th>시간</th>
           <th style="width: 160px;">관리</th>
@@ -43,7 +44,7 @@
         </thead>
         <tbody id="myReservationList">
         <tr>
-          <td colspan="4" class="text-center text-muted">이름을 입력하고 조회해주세요.</td>
+          <td colspan="5" class="text-center text-muted">이름을 입력하고 조회해주세요.</td>
         </tr>
         </tbody>
       </table>
@@ -135,13 +136,14 @@
     if (!list) return;
 
     if (reservations.length === 0) {
-      list.innerHTML = '<tr><td colspan="4" class="text-center text-muted">예약 내역이 없습니다.</td></tr>';
+      list.innerHTML = '<tr><td colspan="5" class="text-center text-muted">예약 내역이 없습니다.</td></tr>';
       return;
     }
 
     list.innerHTML = reservations.map(reservation => `
       <tr>
         <td>${reservation.theme.name}</td>
+        <td>${reservation.store.name}</td>
         <td>
           <input type="date"
                  id="date-${reservation.id}"
@@ -149,7 +151,7 @@
                  value="${reservation.date}"
                  min="${todayString()}"
                  data-previous-date="${reservation.date}"
-                 onchange="handleReservationDateChange(${reservation.id}, ${reservation.theme.id})">
+                 onchange="handleReservationDateChange(${reservation.id}, ${reservation.theme.id}, ${reservation.store.id})">
         </td>
         <td>
           <select id="time-${reservation.id}" class="form-select form-select-sm">
@@ -166,7 +168,7 @@
     `).join('');
   }
 
-  async function handleReservationDateChange(reservationId, themeId) {
+  async function handleReservationDateChange(reservationId, themeId, storeId) {
     const dateInput = document.getElementById(`date-${reservationId}`);
     if (!dateInput) return;
 
@@ -180,15 +182,15 @@
     }
 
     dateInput.dataset.previousDate = selectedDate;
-    await loadTimesForReservation(reservationId, themeId);
+    await loadTimesForReservation(reservationId, themeId, storeId);
   }
 
-  async function loadTimesForReservation(reservationId, themeId) {
+  async function loadTimesForReservation(reservationId, themeId, storeId) {
     const date = getVal(`date-${reservationId}`);
-    if (!date || !themeId) return;
+    if (!date || !themeId || !storeId) return;
 
     try {
-      const response = await fetch(`/api/times?date=${date}&themeId=${themeId}`);
+      const response = await fetch(`/api/times?date=${date}&themeId=${themeId}&storeId=${storeId}`);
       if (!response.ok) {
         alert('예약 가능 시간 조회 실패: ' + await parseErrorMessage(response));
         return;
