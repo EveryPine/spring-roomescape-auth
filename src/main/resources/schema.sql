@@ -8,6 +8,13 @@ CREATE TABLE member
     PRIMARY KEY (id)
 );
 
+CREATE TABLE token_blacklist
+(
+    id         BIGINT        NOT NULL AUTO_INCREMENT,
+    token      VARCHAR(1000) NOT NULL,
+    expired_at TIMESTAMP     NOT NULL
+);
+
 CREATE TABLE reservation_time
 (
     id       BIGINT NOT NULL AUTO_INCREMENT,
