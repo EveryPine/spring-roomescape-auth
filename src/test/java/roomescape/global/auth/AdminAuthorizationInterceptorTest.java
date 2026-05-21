@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import roomescape.global.auth.entity.Role;
+import roomescape.global.auth.interceptor.AdminAuthorizationInterceptor;
 import roomescape.global.error.ErrorCode;
 import roomescape.global.error.exception.BusinessException;
 
@@ -23,7 +24,8 @@ class AdminAuthorizationInterceptorTest {
         request.setAttribute("role", Role.ADMIN);
 
         // when
-        boolean actual = interceptor.preHandle(request, new MockHttpServletResponse(), new Object());
+        boolean actual = interceptor.preHandle(request, new MockHttpServletResponse(),
+            new Object());
 
         // then
         assertThat(actual).isTrue();

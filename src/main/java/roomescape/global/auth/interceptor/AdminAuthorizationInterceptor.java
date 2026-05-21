@@ -1,4 +1,4 @@
-package roomescape.global.auth;
+package roomescape.global.auth.interceptor;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -9,17 +9,16 @@ import roomescape.global.error.ErrorCode;
 import roomescape.global.error.exception.BusinessException;
 
 @Component
-public class ManagerAuthorizationInterceptor implements HandlerInterceptor {
+public class AdminAuthorizationInterceptor implements HandlerInterceptor {
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response,
         Object handler) {
         Role role = (Role) request.getAttribute("role");
-        if (role != Role.MANAGER) {
+        if (role != Role.ADMIN) {
             throw new BusinessException(ErrorCode.AUTH_FORBIDDEN);
         }
 
         return true;
     }
-
 }

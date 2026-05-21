@@ -12,6 +12,7 @@ import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import roomescape.global.auth.entity.Member;
 import roomescape.global.auth.entity.Role;
+import roomescape.global.auth.interceptor.AuthenticationInterceptor;
 import roomescape.global.auth.repository.FakeTokenBlacklistRepository;
 import roomescape.global.error.ErrorCode;
 import roomescape.global.error.exception.BusinessException;

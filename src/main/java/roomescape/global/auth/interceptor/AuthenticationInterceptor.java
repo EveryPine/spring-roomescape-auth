@@ -1,10 +1,12 @@
-package roomescape.global.auth;
+package roomescape.global.auth.interceptor;
 
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
+import roomescape.global.auth.AuthenticationExtractor;
+import roomescape.global.auth.JwtProvider;
 import roomescape.global.auth.entity.Role;
 import roomescape.global.auth.repository.TokenBlacklistRepository;
 import roomescape.global.error.ErrorCode;
