@@ -8,6 +8,8 @@ import java.util.Objects;
 import java.util.Optional;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import roomescape.domain.managerstore.entity.ManagerStore;
+import roomescape.domain.managerstore.repository.ManagerStoreRepository;
 import roomescape.domain.reservation.dto.request.AdminReservationCreateRequestDto;
 import roomescape.domain.reservation.dto.request.ReservationCreateRequestDto;
 import roomescape.domain.reservation.dto.request.ReservationUpdateRequestDto;
@@ -26,32 +28,44 @@ import roomescape.global.error.ErrorDetail;
 import roomescape.global.error.exception.BusinessException;
 
 @Service
+@Transactional(readOnly = true)
 public class ReservationService {
 
     private final ReservationRepository reservationRepository;
+    private final ManagerStoreRepository managerStoreRepository;
     private final TimeRepository timeRepository;
     private final ThemeRepository themeRepository;
     private final StoreRepository storeRepository;
 
     public ReservationService(ReservationRepository reservationRepository,
+        ManagerStoreRepository managerStoreRepository,
         TimeRepository timeRepository,
         ThemeRepository themeRepository,
         StoreRepository storeRepository) {
         this.reservationRepository = reservationRepository;
+        this.managerStoreRepository = managerStoreRepository;
         this.timeRepository = timeRepository;
         this.themeRepository = themeRepository;
         this.storeRepository = storeRepository;
     }
 
-    @Transactional
     public List<ReservationResponseDto> getReservations() {
         List<Reservation> reservations = reservationRepository.findAllReservations();
         return convertReservationsToDto(reservations);
     }
 
-    @Transactional
     public List<ReservationResponseDto> getReservationsByMemberId(Long memberId) {
         List<Reservation> reservations = reservationRepository.findReservationsByMemberId(memberId);
+        return convertReservationsToDto(reservations);
+    }
+
+    public List<ReservationResponseDto> getReservationsByManagerId(Long managerId) {
+        List<Long> storeIds = managerStoreRepository.findByManagerId(managerId)
+            .stream()
+            .map(ManagerStore::getStoreId)
+            .toList();
+        List<Reservation> reservations = reservationRepository.findReservationsByStoreIds(storeIds);
+
         return convertReservationsToDto(reservations);
     }
 

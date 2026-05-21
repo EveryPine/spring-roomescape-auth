@@ -13,14 +13,17 @@ import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import roomescape.domain.managerstore.entity.ManagerStore;
+import roomescape.domain.managerstore.repository.FakeManagerStoreRepository;
+import roomescape.domain.managerstore.repository.ManagerStoreRepository;
 import roomescape.domain.reservation.dto.request.ReservationCreateRequestDto;
 import roomescape.domain.reservation.dto.request.ReservationUpdateRequestDto;
 import roomescape.domain.reservation.dto.response.ReservationCreateResponseDto;
 import roomescape.domain.reservation.dto.response.ReservationResponseDto;
 import roomescape.domain.reservation.entity.Reservation;
 import roomescape.domain.reservation.repository.FakeReservationRepository;
-import roomescape.domain.reservation.repository.ReservationRepository;
 import roomescape.domain.store.dto.response.StoreResponseDto;
+import roomescape.domain.store.entity.Store;
 import roomescape.domain.store.repository.FakeStoreRepository;
 import roomescape.domain.store.repository.StoreRepository;
 import roomescape.domain.theme.dto.response.ThemeResponseDto;
@@ -38,17 +41,20 @@ import roomescape.global.error.exception.BusinessException;
 class ReservationServiceTest {
 
     private final ReservationService reservationService;
-    private final ReservationRepository reservationRepository;
+    private final FakeReservationRepository reservationRepository;
+    private final ManagerStoreRepository managerStoreRepository;
     private final TimeRepository timeRepository;
     private final ThemeRepository themeRepository;
     private final StoreRepository storeRepository;
 
     ReservationServiceTest() {
         this.reservationRepository = new FakeReservationRepository();
+        this.managerStoreRepository = new FakeManagerStoreRepository();
         this.timeRepository = new FakeTimeRepository();
         this.themeRepository = new FakeThemeRepository();
         this.storeRepository = new FakeStoreRepository();
-        this.reservationService = new ReservationService(reservationRepository, timeRepository,
+        this.reservationService = new ReservationService(reservationRepository,
+            managerStoreRepository, timeRepository,
             themeRepository, storeRepository);
     }
 
@@ -56,6 +62,11 @@ class ReservationServiceTest {
         LocalDateTime now) {
         return Reservation.create(memberId, date, time, theme,
             storeRepository.findById(1L).orElseThrow(), now);
+    }
+
+    private Reservation createReservation(Long memberId, LocalDate date, Time time, Theme theme,
+        Store store, LocalDateTime now) {
+        return Reservation.create(memberId, date, time, theme, store, now);
     }
 
     @Nested
@@ -141,6 +152,44 @@ class ReservationServiceTest {
                 () -> assertEquals(
                     new ReservationResponseDto(1L, memberId, date, TimeResponseDto.from(time),
                         ThemeResponseDto.from(theme), new StoreResponseDto(1L, "강남점")),
+                    actual.get(0))
+            );
+        }
+    }
+
+    @Nested
+    @DisplayName("getReservationsByManagerId 테스트")
+    class GetReservationsByManagerIdTest {
+
+        @Test
+        @DisplayName("매니저가 담당하는 지점의 예약만 조회한다.")
+        void 성공() {
+            LocalDate date = LocalDate.of(2026, 4, 30);
+            Time time = Time.reconstruct(1L, LocalTime.of(10, 0));
+            Theme theme = Theme.reconstruct(1L, "테마 이름", "테마 설명",
+                "https://roomescape.com/images/themes/ring-banner.png");
+            Store store1 = storeRepository.findById(1L).orElseThrow();
+            Store store2 = Store.create("잠실점").withId(2L);
+            Long managerId = 10L;
+            reservationRepository.assignStoreToManager(managerId, store1.getId());
+            managerStoreRepository.save(ManagerStore.create(managerId, store1.getId()));
+
+            reservationRepository.save(
+                createReservation(1L, date, time, theme, store1,
+                    LocalDateTime.of(2026, 1, 1, 0, 0)));
+            reservationRepository.save(
+                createReservation(2L, date.plusDays(1),
+                    Time.reconstruct(2L, LocalTime.of(11, 0)), theme, store2,
+                    LocalDateTime.of(2026, 1, 1, 0, 0)));
+
+            List<ReservationResponseDto> actual = reservationService.getReservationsByManagerId(
+                managerId);
+
+            assertAll(
+                () -> assertEquals(1, actual.size()),
+                () -> assertEquals(
+                    new ReservationResponseDto(1L, 1L, date, TimeResponseDto.from(time),
+                        ThemeResponseDto.from(theme), StoreResponseDto.from(store1)),
                     actual.get(0))
             );
         }

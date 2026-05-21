@@ -3,7 +3,9 @@ package roomescape.domain.reservation.repository;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
@@ -15,6 +17,12 @@ public class FakeReservationRepository implements ReservationRepository {
     private final AtomicLong id = new AtomicLong(0);
 
     private final List<Reservation> reservations = new ArrayList<>();
+    private final Map<Long, List<Long>> managerStoreIds = new HashMap<>();
+
+    public void assignStoreToManager(Long managerId, Long storeId) {
+        managerStoreIds.computeIfAbsent(managerId, ignored -> new ArrayList<>())
+            .add(storeId);
+    }
 
     @Override
     public List<Reservation> findAllReservations() {
@@ -25,6 +33,13 @@ public class FakeReservationRepository implements ReservationRepository {
     public List<Reservation> findReservationsByMemberId(Long memberId) {
         return reservations.stream()
             .filter(reservation -> reservation.getMemberId().equals(memberId))
+            .toList();
+    }
+
+    @Override
+    public List<Reservation> findReservationsByStoreIds(List<Long> storeIds) {
+        return reservations.stream()
+            .filter(reservation -> storeIds.contains(reservation.getStore().getId()))
             .toList();
     }
 

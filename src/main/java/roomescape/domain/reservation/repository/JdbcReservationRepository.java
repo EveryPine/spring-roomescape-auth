@@ -5,6 +5,7 @@ import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -64,6 +65,27 @@ public class JdbcReservationRepository implements ReservationRepository {
             WHERE r.member_id = :memberId
             """;
         SqlParameterSource parameters = new MapSqlParameterSource("memberId", memberId);
+
+        return jdbcTemplate.query(sql, parameters, this::mapReservation);
+    }
+
+    @Override
+    public List<Reservation> findReservationsByStoreIds(List<Long> storeIds) {
+        if (storeIds.isEmpty()) {
+            return Collections.emptyList();
+        }
+        String sql = """
+            SELECT r.id, r.member_id, r.date,
+                   rt.id AS time_id, rt.start_at,
+                   t.id AS theme_id, t.name AS theme_name, t.description, t.image_url,
+                   s.id AS store_id, s.name AS store_name
+            FROM reservation r
+            JOIN reservation_time rt ON r.time_id = rt.id
+            JOIN theme t ON r.theme_id = t.id
+            JOIN store s ON r.store_id = s.id
+            WHERE r.store_id in (:storeIds)
+            """;
+        SqlParameterSource parameters = new MapSqlParameterSource("storeIds", storeIds);
 
         return jdbcTemplate.query(sql, parameters, this::mapReservation);
     }
@@ -176,12 +198,21 @@ public class JdbcReservationRepository implements ReservationRepository {
     }
 
     private Reservation mapReservation(ResultSet resultSet, int rowNum) throws SQLException {
-        return Reservation.create(resultSet.getLong("member_id"),
-            resultSet.getDate("date").toLocalDate(), Time.reconstruct(resultSet.getLong("time_id"),
-                LocalTime.parse(resultSet.getString("start_at"))),
-            Theme.reconstruct(resultSet.getLong("theme_id"), resultSet.getString("theme_name"),
-                resultSet.getString("description"), resultSet.getString("image_url")),
-            Store.create(resultSet.getString("name")).withId(resultSet.getLong("id")),
-            LocalDateTime.MIN).withId(resultSet.getLong("id"));
+        return Reservation.create(
+            resultSet.getLong("member_id"),
+            resultSet.getDate("date").toLocalDate(),
+            Time.reconstruct(
+                resultSet.getLong("time_id"),
+                LocalTime.parse(resultSet.getString("start_at"))
+            ),
+            Theme.reconstruct(
+                resultSet.getLong("theme_id"),
+                resultSet.getString("theme_name"),
+                resultSet.getString("description"),
+                resultSet.getString("image_url")),
+            Store.create(resultSet.getString("name"))
+                .withId(resultSet.getLong("id")),
+            LocalDateTime.MIN
+        ).withId(resultSet.getLong("id"));
     }
 }

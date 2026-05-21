@@ -33,6 +33,8 @@ public class AuthenticationPrincipalConfig implements WebMvcConfigurer {
                 "/api/stores", "/api/stores/**");
         registry.addInterceptor(adminAuthorizationInterceptor)
             .addPathPatterns("/api/admin/**");
+        registry.addInterceptor(authenticationInterceptor)
+            .addPathPatterns("/api/manager/**");
     }
 
     @Override

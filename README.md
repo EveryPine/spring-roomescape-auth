@@ -68,6 +68,8 @@
 | 예약 수정 | PATCH  | `/api/manager/reservations/{id}` | 204 No Content | 400, 401  403, 404, 409, 422 | [상세](docs/API_SPEC.md#매니저-예약-수정) |
 | 예약 삭제 | DELETE | `/api/manager/reservations/{id}` | 204 No Content | 400, 403, 401, 404           | [상세](docs/API_SPEC.md#매니저-예약-삭제) |
 
+정
+
 ### 사용자 API
 
 | API         | Method | Path                                                                        | 성공 응답          | 주요 실패 응답                     | 상세                                      |

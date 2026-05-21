@@ -11,6 +11,8 @@ public interface ReservationRepository {
 
     List<Reservation> findReservationsByMemberId(Long memberId);
 
+    List<Reservation> findReservationsByStoreIds(List<Long> storeIds);
+
     Optional<Reservation> findReservationById(Long id);
 
     Optional<Reservation> findReservationByDateTimeThemeIdAndStoreId(LocalDate date, Long timeId,
