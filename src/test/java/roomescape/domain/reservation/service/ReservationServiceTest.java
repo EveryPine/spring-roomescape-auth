@@ -10,6 +10,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -35,6 +36,10 @@ import roomescape.domain.time.dto.response.TimeResponseDto;
 import roomescape.domain.time.entity.Time;
 import roomescape.domain.time.repository.FakeTimeRepository;
 import roomescape.domain.time.repository.TimeRepository;
+import roomescape.global.auth.entity.Member;
+import roomescape.global.auth.entity.Role;
+import roomescape.global.auth.repository.FakeMemberRepository;
+import roomescape.global.auth.repository.MemberRepository;
 import roomescape.global.error.ErrorCode;
 import roomescape.global.error.ErrorDetail;
 import roomescape.global.error.exception.BusinessException;
@@ -42,13 +47,17 @@ import roomescape.global.error.exception.BusinessException;
 class ReservationServiceTest {
 
     private final ReservationService reservationService;
+    private final MemberRepository memberRepository;
     private final FakeReservationRepository reservationRepository;
     private final ManagerStoreRepository managerStoreRepository;
     private final TimeRepository timeRepository;
     private final ThemeRepository themeRepository;
     private final StoreRepository storeRepository;
 
+    private Member manager;
+
     ReservationServiceTest() {
+        this.memberRepository = new FakeMemberRepository();
         this.reservationRepository = new FakeReservationRepository();
         this.managerStoreRepository = new FakeManagerStoreRepository();
         this.timeRepository = new FakeTimeRepository();
@@ -57,6 +66,11 @@ class ReservationServiceTest {
         this.reservationService = new ReservationService(reservationRepository,
             managerStoreRepository, timeRepository,
             themeRepository, storeRepository);
+    }
+
+    @BeforeEach
+    void setUp() {
+        this.manager = memberRepository.save(Member.create("매니저", "manager", "1234", Role.MANAGER));
     }
 
     @Nested
@@ -165,7 +179,7 @@ class ReservationServiceTest {
                 "https://roomescape.com/images/themes/ring-banner.png");
             Store store1 = Store.create("강남점").withId(1L);
             Store store2 = Store.create("잠실점").withId(2L);
-            Long managerId = 10L;
+            Long managerId = manager.getId();
             reservationRepository.assignStoreToManager(managerId, store1.getId());
             managerStoreRepository.save(ManagerStore.create(managerId, store1.getId()));
 
@@ -198,6 +212,7 @@ class ReservationServiceTest {
         @DisplayName("예약을 생성하고, 생성된 예약을 반환한다.")
         void 성공() {
             // given
+            Long managerId = manager.getId();
             Long memberId = 1L;
             ReservationCreateRequestDto request = new ReservationCreateRequestDto(
                 LocalDate.of(2026, 5, 1),
@@ -211,7 +226,7 @@ class ReservationServiceTest {
             timeRepository.save(Time.create(LocalTime.of(15, 30)));
 
             // when
-            ReservationCreateResponseDto actual = reservationService.saveReservation(memberId,
+            ReservationCreateResponseDto actual = reservationService.saveReservation(managerId,
                 request,
                 LocalDateTime.of(2026, 1, 1, 0, 0));
 
@@ -321,6 +336,7 @@ class ReservationServiceTest {
         @DisplayName("예약을 생성하고, 생성된 예약을 반환한다.")
         void 성공() {
             Long memberId = 1L;
+            Long managerId = manager.getId();
             Time time = timeRepository.save(Time.create(LocalTime.of(15, 30)));
             Theme theme = themeRepository.save(Theme.create("테마명", "테마 설명",
                 "https://roomescape.com/images/themes/ring-banner.png"));
@@ -332,9 +348,11 @@ class ReservationServiceTest {
                 theme.getId(),
                 store.getId()
             );
+            managerStoreRepository.save(ManagerStore.create(managerId, store.getId()));
+            LocalDateTime now = LocalDateTime.of(2026, 1, 1, 0, 0);
 
             ReservationCreateResponseDto actual = reservationService.saveManagerReservation(
-                request, LocalDateTime.of(2026, 1, 1, 0, 0));
+                managerId, request, now);
 
             assertAll(
                 () -> assertEquals(1L, actual.id()),
@@ -350,6 +368,7 @@ class ReservationServiceTest {
         @Test
         @DisplayName("요청한 시간 id가 존재하지 않으면 예외가 발생한다.")
         void 실패1() {
+            Long managerId = manager.getId();
             Theme theme = themeRepository.save(Theme.create("테마명", "테마 설명",
                 "https://roomescape.com/images/themes/ring-banner.png"));
             Store store = storeRepository.save(Store.create("지점명"));
@@ -361,7 +380,7 @@ class ReservationServiceTest {
                 store.getId()
             );
 
-            assertThatThrownBy(() -> reservationService.saveManagerReservation(request,
+            assertThatThrownBy(() -> reservationService.saveManagerReservation(managerId, request,
                 LocalDateTime.of(2026, 1, 1, 0, 0)))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
@@ -371,6 +390,7 @@ class ReservationServiceTest {
         @Test
         @DisplayName("요청한 테마 id가 존재하지 않으면 예외가 발생한다.")
         void 실패2() {
+            Long managerId = manager.getId();
             Time time = timeRepository.save(Time.create(LocalTime.of(15, 30)));
             Store store = storeRepository.save(Store.create("지점명"));
             StaffReservationCreateRequestDto request = new StaffReservationCreateRequestDto(
@@ -381,7 +401,7 @@ class ReservationServiceTest {
                 store.getId()
             );
 
-            assertThatThrownBy(() -> reservationService.saveManagerReservation(request,
+            assertThatThrownBy(() -> reservationService.saveManagerReservation(managerId, request,
                 LocalDateTime.of(2026, 1, 1, 0, 0)))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
@@ -391,6 +411,7 @@ class ReservationServiceTest {
         @Test
         @DisplayName("요청한 지점 id가 존재하지 않으면 예외가 발생한다.")
         void 실패3() {
+            Long managerId = manager.getId();
             Time time = timeRepository.save(Time.create(LocalTime.of(15, 30)));
             Theme theme = themeRepository.save(Theme.create("테마명", "테마 설명",
                 "https://roomescape.com/images/themes/ring-banner.png"));
@@ -402,7 +423,7 @@ class ReservationServiceTest {
                 99999L
             );
 
-            assertThatThrownBy(() -> reservationService.saveManagerReservation(request,
+            assertThatThrownBy(() -> reservationService.saveManagerReservation(managerId, request,
                 LocalDateTime.of(2026, 1, 1, 0, 0)))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
@@ -412,12 +433,15 @@ class ReservationServiceTest {
         @Test
         @DisplayName("다른 매장의 예약 생성을 시도하면 예외가 발생한다.")
         void 실패4() {
+            Long managerId = manager.getId();
             Long memberId = 1L;
+            Member otherManager = memberRepository.save(
+                Member.create("매니저2", "manager2", "1234", Role.MANAGER));
             Time time = timeRepository.save(Time.create(LocalTime.of(15, 30)));
             Theme theme = themeRepository.save(Theme.create("테마명", "테마 설명",
                 "https://roomescape.com/images/themes/ring-banner.png"));
             Store store = storeRepository.save(Store.create("지점명"));
-            managerStoreRepository.save(ManagerStore.create(memberId, store.getId()));
+            managerStoreRepository.save(ManagerStore.create(managerId, store.getId()));
             StaffReservationCreateRequestDto request = new StaffReservationCreateRequestDto(
                 LocalDate.of(2026, 5, 1),
                 memberId,
@@ -426,8 +450,9 @@ class ReservationServiceTest {
                 store.getId()
             );
 
-            assertThatThrownBy(() -> reservationService.saveManagerReservation(request,
-                LocalDateTime.of(2026, 1, 1, 0, 0)))
+            assertThatThrownBy(
+                () -> reservationService.saveManagerReservation(otherManager.getId(), request,
+                    LocalDateTime.of(2026, 1, 1, 0, 0)))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(ErrorCode.RESERVATION_FORBIDDEN);
@@ -437,6 +462,7 @@ class ReservationServiceTest {
         @DisplayName("같은 지점, 날짜, 시간과 테마가 모두 같은 예약이 존재하는 경우 예외가 발생한다.")
         void 실패5() {
             Long memberId = 1L;
+            Long managerId = manager.getId();
             Time time = timeRepository.save(Time.create(LocalTime.of(15, 30)));
             Theme theme = themeRepository.save(Theme.create("테마명", "테마 설명",
                 "https://roomescape.com/images/themes/ring-banner.png"));
@@ -450,8 +476,9 @@ class ReservationServiceTest {
             );
             reservationRepository.save(Reservation.create(memberId, request.date(), time, theme,
                 store, LocalDateTime.of(2026, 1, 1, 0, 0)));
+            managerStoreRepository.save(ManagerStore.create(managerId, store.getId()));
 
-            assertThatThrownBy(() -> reservationService.saveManagerReservation(request,
+            assertThatThrownBy(() -> reservationService.saveManagerReservation(managerId, request,
                 LocalDateTime.of(2026, 1, 1, 0, 0)))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
@@ -461,6 +488,7 @@ class ReservationServiceTest {
         @Test
         @DisplayName("지난 날짜와 시간으로 예약을 생성하려고 하면 예외가 발생한다.")
         void 실패6() {
+            Long managerId = manager.getId();
             Time time = timeRepository.save(Time.create(LocalTime.of(15, 30)));
             Theme theme = themeRepository.save(Theme.create("테마명", "테마 설명",
                 "https://roomescape.com/images/themes/ring-banner.png"));
@@ -473,7 +501,7 @@ class ReservationServiceTest {
                 store.getId()
             );
 
-            assertThatThrownBy(() -> reservationService.saveManagerReservation(request,
+            assertThatThrownBy(() -> reservationService.saveManagerReservation(managerId, request,
                 LocalDateTime.of(2026, 1, 1, 0, 0)))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")

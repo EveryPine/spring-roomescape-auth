@@ -38,9 +38,10 @@ public class ManagerReservationController {
     @PostMapping
     public ResponseEntity<ReservationCreateResponseDto> saveReservation(@LoginMember Member member,
         @Valid @RequestBody StaffReservationCreateRequestDto request) {
+        Long managerId = member.getId();
         LocalDateTime now = LocalDateTime.now();
 
         return ResponseEntity.status(HttpStatus.CREATED)
-            .body(reservationService.saveManagerReservation(request, now));
+            .body(reservationService.saveManagerReservation(managerId, request, now));
     }
 }

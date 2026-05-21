@@ -88,13 +88,14 @@ public class ReservationService {
 
     @Transactional
     public ReservationCreateResponseDto saveManagerReservation(
+        Long managerId,
         StaffReservationCreateRequestDto request,
         LocalDateTime now) {
         Reservation reservation = createReservation(request.memberId(), request.timeId(),
             request.themeId(), request.storeId(), request.date(), now);
-        validateManagerStore(request.memberId(), request.storeId());
+        validateManagerStore(managerId, request.storeId());
         validateDuplicates(request.date(), request.timeId(), request.themeId(), request.storeId());
-        
+
         return ReservationCreateResponseDto.from(reservationRepository.save(reservation));
     }
 
@@ -118,7 +119,7 @@ public class ReservationService {
     }
 
     private void validateManagerStore(Long managerId, Long storeId) {
-        if (managerStoreRepository.existsByManagerIdAndStoreId(managerId, storeId)) {
+        if (!managerStoreRepository.existsByManagerIdAndStoreId(managerId, storeId)) {
             throw new BusinessException(ErrorCode.RESERVATION_FORBIDDEN);
         }
     }
