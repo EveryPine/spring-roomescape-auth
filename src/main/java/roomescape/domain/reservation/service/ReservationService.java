@@ -146,6 +146,20 @@ public class ReservationService {
     }
 
     @Transactional
+    public void updateManagerReservation(Long managerId, Long id,
+        ReservationUpdateRequestDto request, LocalDateTime now) {
+        Reservation reservation = getReservationById(id);
+        validateManagerStore(managerId, reservation.getStore().getId());
+        Time time = getTimeById(request.timeId());
+        validateDuplicatesExceptMe(id, request.date(), request.timeId(),
+            reservation.getTheme().getId(), reservation.getStore().getId());
+        validateDateAccessable(reservation, now);
+        validateDateTimeChangeable(request.date(), time, now);
+
+        reservationRepository.updateReservationById(id, request.date(), request.timeId());
+    }
+
+    @Transactional
     public void updateReservation(Long memberId, Long id, ReservationUpdateRequestDto requestDto,
         LocalDateTime now) {
         Reservation reservation = getReservationById(id);
