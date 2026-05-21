@@ -38,11 +38,8 @@ public class FakeThemeRepository implements ThemeRepository {
 
     public void saveAllThemes(List<Theme> themes) {
         List<Theme> reconstructedThemes = themes.stream()
-            .map(theme -> Theme.reconstruct(
-                id.addAndGet(1),
-                theme.getName(),
-                theme.getDescription(),
-                theme.getImageUrl()))
+            .map(theme -> Theme.create(theme.getName(), theme.getDescription(), theme.getImageUrl())
+                .withId(id.addAndGet(1)))
             .toList();
         this.themes.addAll(reconstructedThemes);
     }
@@ -54,9 +51,8 @@ public class FakeThemeRepository implements ThemeRepository {
 
     @Override
     public Theme save(Theme theme) {
-        Theme savedTheme = Theme.reconstruct(id.addAndGet(1), theme.getName(),
-            theme.getDescription(),
-            theme.getImageUrl());
+        Theme savedTheme = Theme.create(theme.getName(), theme.getDescription(), theme.getImageUrl())
+            .withId(id.addAndGet(1));
         themes.add(savedTheme);
         return savedTheme;
     }

@@ -112,7 +112,7 @@ public class FakeReservationRepository implements ReservationRepository {
             Reservation updatedReservation = Reservation.create(
                 reservation.getMemberId(),
                 date,
-                Time.reconstruct(timeId, time.getStartAt()),
+                Time.create(time.getStartAt()).withId(timeId),
                 reservation.getTheme(),
                 reservation.getStore(),
                 LocalDateTime.MIN

@@ -92,7 +92,7 @@ class ThemeServiceTest {
                     reservations.add(createReservation(
                         (long) j + 1,
                         targetDate,
-                        Time.reconstruct(1L, LocalTime.of(10, 0)),
+                        Time.create(LocalTime.of(10, 0)).withId(1L),
                         theme,
                         LocalDateTime.of(2026, 1, 1, 0, 0)
                     ));

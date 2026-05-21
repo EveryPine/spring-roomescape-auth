@@ -14,7 +14,7 @@ public class FakeTimeRepository implements TimeRepository {
 
     @Override
     public Time save(Time time) {
-        Time savedTime = Time.reconstruct(sequence++, time.getStartAt());
+        Time savedTime = Time.create(time.getStartAt()).withId(sequence++);
         times.add(savedTime);
         return savedTime;
     }

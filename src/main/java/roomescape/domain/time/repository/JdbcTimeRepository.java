@@ -35,7 +35,7 @@ public class JdbcTimeRepository implements TimeRepository {
         Long generatedKey = simpleJdbcInsert.executeAndReturnKey(args)
             .longValue();
 
-        return Time.reconstruct(generatedKey, time.getStartAt());
+        return time.withId(generatedKey);
     }
 
     @Override
@@ -74,9 +74,7 @@ public class JdbcTimeRepository implements TimeRepository {
     }
 
     private Time mapTime(ResultSet resultSet, int rowNum) throws SQLException {
-        return Time.reconstruct(
-            resultSet.getLong("id"),
-            LocalTime.parse(resultSet.getString("start_at"))
-        );
+        return Time.create(LocalTime.parse(resultSet.getString("start_at")))
+            .withId(resultSet.getLong("id"));
     }
 }

@@ -201,15 +201,13 @@ public class JdbcReservationRepository implements ReservationRepository {
         return Reservation.create(
             resultSet.getLong("member_id"),
             resultSet.getDate("date").toLocalDate(),
-            Time.reconstruct(
-                resultSet.getLong("time_id"),
-                LocalTime.parse(resultSet.getString("start_at"))
-            ),
-            Theme.reconstruct(
-                resultSet.getLong("theme_id"),
-                resultSet.getString("theme_name"),
-                resultSet.getString("description"),
-                resultSet.getString("image_url")),
+            Time.create(LocalTime.parse(resultSet.getString("start_at")))
+                .withId(resultSet.getLong("time_id")),
+            Theme.create(
+                    resultSet.getString("theme_name"),
+                    resultSet.getString("description"),
+                    resultSet.getString("image_url"))
+                .withId(resultSet.getLong("theme_id")),
             Store.create(resultSet.getString("name"))
                 .withId(resultSet.getLong("id")),
             LocalDateTime.MIN

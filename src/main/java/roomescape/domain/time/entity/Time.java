@@ -17,8 +17,8 @@ public class Time {
         return new Time(null, startAt);
     }
 
-    public static Time reconstruct(Long id, LocalTime startAt) {
-        return new Time(id, startAt);
+    public Time withId(Long id) {
+        return new Time(id, this.startAt);
     }
 
     public Long getId() {

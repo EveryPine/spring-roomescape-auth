@@ -10,6 +10,13 @@ public class Theme {
     private final String imageUrl;
 
 
+    private Theme(String name, String description, String imageUrl) {
+        this.id = null;
+        this.name = name;
+        this.description = description;
+        this.imageUrl = imageUrl;
+    }
+
     private Theme(Long id, String name, String description, String imageUrl) {
         this.id = id;
         this.name = name;
@@ -34,10 +41,10 @@ public class Theme {
     }
 
     public static Theme create(String name, String description, String imageUrl) {
-        return new Theme(null, name, description, imageUrl);
+        return new Theme(name, description, imageUrl);
     }
 
-    public static Theme reconstruct(Long id, String name, String description, String imageUrl) {
+    public Theme withId(Long id) {
         return new Theme(id, name, description, imageUrl);
     }
 

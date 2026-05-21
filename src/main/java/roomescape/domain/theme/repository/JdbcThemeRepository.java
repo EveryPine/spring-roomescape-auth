@@ -44,7 +44,8 @@ public class JdbcThemeRepository implements ThemeRepository {
             "image_url", theme.getImageUrl()
         );
         long generatedKey = simpleJdbcInsert.executeAndReturnKey(args).longValue();
-        return Theme.reconstruct(generatedKey, theme.getName(), theme.getDescription(), theme.getImageUrl());
+        return Theme.create(theme.getName(), theme.getDescription(), theme.getImageUrl())
+            .withId(generatedKey);
     }
 
     @Override
@@ -105,11 +106,10 @@ public class JdbcThemeRepository implements ThemeRepository {
     }
 
     private Theme mapTheme(ResultSet resultSet, int rowNum) throws SQLException {
-        return Theme.reconstruct(
-            resultSet.getLong("id"),
-            resultSet.getString("name"),
-            resultSet.getString("description"),
-            resultSet.getString("image_url")
-        );
+        return Theme.create(
+                resultSet.getString("name"),
+                resultSet.getString("description"),
+                resultSet.getString("image_url"))
+            .withId(resultSet.getLong("id"));
     }
 }
