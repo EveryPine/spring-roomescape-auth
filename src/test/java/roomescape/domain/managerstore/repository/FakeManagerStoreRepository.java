@@ -27,4 +27,11 @@ public class FakeManagerStoreRepository implements ManagerStoreRepository {
             .filter(managerStore -> Objects.equals(managerStore.getManagerId(), managerId))
             .toList();
     }
+
+    @Override
+    public boolean existsByManagerIdAndStoreId(Long managerId, Long storeId) {
+        return managerStores.stream()
+            .anyMatch(managerStore -> Objects.equals(managerStore.getManagerId(), managerId)
+                && Objects.equals(managerStore.getStoreId(), storeId));
+    }
 }

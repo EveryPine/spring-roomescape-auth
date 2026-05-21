@@ -5,7 +5,7 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import java.time.LocalDate;
 
-public record AdminReservationCreateRequestDto(@NotNull(message = "예약 날짜를 입력해주세요.")
+public record StaffReservationCreateRequestDto(@NotNull(message = "예약 날짜를 입력해주세요.")
                                                @JsonFormat(pattern = "yyyy-MM-dd") LocalDate date,
                                                @NotNull(message = "예약자 id를 입력해주세요.")
                                                Long memberId,

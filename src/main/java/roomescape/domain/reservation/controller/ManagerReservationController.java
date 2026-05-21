@@ -1,11 +1,17 @@
 package roomescape.domain.reservation.controller;
 
+import jakarta.validation.Valid;
+import java.time.LocalDateTime;
 import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import roomescape.domain.reservation.dto.request.StaffReservationCreateRequestDto;
+import roomescape.domain.reservation.dto.response.ReservationCreateResponseDto;
 import roomescape.domain.reservation.dto.response.ReservationResponseDto;
 import roomescape.domain.reservation.service.ReservationService;
 import roomescape.global.auth.annotation.LoginMember;
@@ -27,5 +33,14 @@ public class ManagerReservationController {
     ) {
         return ResponseEntity.status(HttpStatus.OK)
             .body(reservationService.getReservationsByManagerId(member.getId()));
+    }
+
+    @PostMapping
+    public ResponseEntity<ReservationCreateResponseDto> saveReservation(@LoginMember Member member,
+        @Valid @RequestBody StaffReservationCreateRequestDto request) {
+        LocalDateTime now = LocalDateTime.now();
+
+        return ResponseEntity.status(HttpStatus.CREATED)
+            .body(reservationService.saveManagerReservation(request, now));
     }
 }

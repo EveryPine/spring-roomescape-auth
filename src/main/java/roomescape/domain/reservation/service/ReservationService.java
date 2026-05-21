@@ -10,9 +10,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import roomescape.domain.managerstore.entity.ManagerStore;
 import roomescape.domain.managerstore.repository.ManagerStoreRepository;
-import roomescape.domain.reservation.dto.request.AdminReservationCreateRequestDto;
 import roomescape.domain.reservation.dto.request.ReservationCreateRequestDto;
 import roomescape.domain.reservation.dto.request.ReservationUpdateRequestDto;
+import roomescape.domain.reservation.dto.request.StaffReservationCreateRequestDto;
 import roomescape.domain.reservation.dto.response.ReservationCreateResponseDto;
 import roomescape.domain.reservation.dto.response.ReservationResponseDto;
 import roomescape.domain.reservation.entity.Reservation;
@@ -87,8 +87,20 @@ public class ReservationService {
     }
 
     @Transactional
+    public ReservationCreateResponseDto saveManagerReservation(
+        StaffReservationCreateRequestDto request,
+        LocalDateTime now) {
+        Reservation reservation = createReservation(request.memberId(), request.timeId(),
+            request.themeId(), request.storeId(), request.date(), now);
+        validateManagerStore(request.memberId(), request.storeId());
+        validateDuplicates(request.date(), request.timeId(), request.themeId(), request.storeId());
+        
+        return ReservationCreateResponseDto.from(reservationRepository.save(reservation));
+    }
+
+    @Transactional
     public ReservationCreateResponseDto saveAdminReservation(
-        AdminReservationCreateRequestDto request, LocalDateTime now) {
+        StaffReservationCreateRequestDto request, LocalDateTime now) {
         Long memberId = request.memberId();
         Reservation reservation = createReservation(memberId, request.timeId(), request.themeId(),
             request.storeId(), request.date(), now);
@@ -102,6 +114,12 @@ public class ReservationService {
             date, timeId, themeId, storeId);
         if (reservation.isPresent()) {
             throw new BusinessException(ErrorCode.RESERVATION_DUPLICATE);
+        }
+    }
+
+    private void validateManagerStore(Long managerId, Long storeId) {
+        if (managerStoreRepository.existsByManagerIdAndStoreId(managerId, storeId)) {
+            throw new BusinessException(ErrorCode.RESERVATION_FORBIDDEN);
         }
     }
 

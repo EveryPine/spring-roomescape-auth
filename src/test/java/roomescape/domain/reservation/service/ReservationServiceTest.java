@@ -18,6 +18,7 @@ import roomescape.domain.managerstore.repository.FakeManagerStoreRepository;
 import roomescape.domain.managerstore.repository.ManagerStoreRepository;
 import roomescape.domain.reservation.dto.request.ReservationCreateRequestDto;
 import roomescape.domain.reservation.dto.request.ReservationUpdateRequestDto;
+import roomescape.domain.reservation.dto.request.StaffReservationCreateRequestDto;
 import roomescape.domain.reservation.dto.response.ReservationCreateResponseDto;
 import roomescape.domain.reservation.dto.response.ReservationResponseDto;
 import roomescape.domain.reservation.entity.Reservation;
@@ -58,17 +59,6 @@ class ReservationServiceTest {
             themeRepository, storeRepository);
     }
 
-    private Reservation createReservation(Long memberId, LocalDate date, Time time, Theme theme,
-        LocalDateTime now) {
-        return Reservation.create(memberId, date, time, theme,
-            storeRepository.findById(1L).orElseThrow(), now);
-    }
-
-    private Reservation createReservation(Long memberId, LocalDate date, Time time, Theme theme,
-        Store store, LocalDateTime now) {
-        return Reservation.create(memberId, date, time, theme, store, now);
-    }
-
     @Nested
     @DisplayName("getReservation 테스트")
     class GetReservationsTest {
@@ -76,22 +66,23 @@ class ReservationServiceTest {
         @Test
         @DisplayName("모든 예약을 조회한다.")
         void 성공() {
-
             // given
             LocalDate date = LocalDate.of(2026, 4, 30);
             Time time = Time.reconstruct(1L, LocalTime.of(10, 0));
             Theme theme = Theme.reconstruct(1L, "테마 이름", "테마 설명",
                 "https://roomescape.com/images/themes/ring-banner.png");
+            Store store = Store.create("지점명").withId(1L);
 
             reservationRepository.save(
-                createReservation(1L, date, time, theme, LocalDateTime.of(2026, 1, 1, 0, 0)));
+                Reservation.create(1L, date, time, theme,
+                    store, LocalDateTime.of(2026, 1, 1, 0, 0)));
             reservationRepository.save(
-                createReservation(2L, date.plusDays(1),
-                    Time.reconstruct(2L, LocalTime.of(11, 0)), theme,
+                Reservation.create(2L, date.plusDays(1),
+                    Time.reconstruct(2L, LocalTime.of(11, 0)), theme, store,
                     LocalDateTime.of(2026, 1, 1, 0, 0)));
             reservationRepository.save(
-                createReservation(3L, date.plusDays(2),
-                    Time.reconstruct(3L, LocalTime.of(12, 0)), theme,
+                Reservation.create(3L, date.plusDays(2),
+                    Time.reconstruct(3L, LocalTime.of(12, 0)), theme, store,
                     LocalDateTime.of(2026, 1, 1, 0, 0)));
 
             // when
@@ -102,18 +93,18 @@ class ReservationServiceTest {
                 () -> assertEquals(3, actual.size()),
                 () -> assertEquals(
                     new ReservationResponseDto(1L, 1L, date, TimeResponseDto.from(time),
-                        ThemeResponseDto.from(theme), new StoreResponseDto(1L, "강남점")),
+                        ThemeResponseDto.from(theme), StoreResponseDto.from(store)),
                     actual.get(0)),
                 () -> assertEquals(
                     new ReservationResponseDto(2L, 2L, date.plusDays(1),
                         TimeResponseDto.from(Time.reconstruct(2L, LocalTime.of(11, 0))),
-                        ThemeResponseDto.from(theme), new StoreResponseDto(1L, "강남점")),
+                        ThemeResponseDto.from(theme), StoreResponseDto.from(store)),
                     actual.get(1)
                 ),
                 () -> assertEquals(
                     new ReservationResponseDto(3L, 3L, date.plusDays(2),
                         TimeResponseDto.from(Time.reconstruct(3L, LocalTime.of(12, 0))),
-                        ThemeResponseDto.from(theme), new StoreResponseDto(1L, "강남점")),
+                        ThemeResponseDto.from(theme), StoreResponseDto.from(store)),
                     actual.get(2)
                 )
             );
@@ -131,18 +122,22 @@ class ReservationServiceTest {
             Time time = Time.reconstruct(1L, LocalTime.of(10, 0));
             Theme theme = Theme.reconstruct(1L, "테마 이름", "테마 설명",
                 "https://roomescape.com/images/themes/ring-banner.png");
+            Store store = Store.create("강남점").withId(1L);
+            Long memberId = 1L;
 
             reservationRepository.save(
-                createReservation(1L, date, time, theme, LocalDateTime.of(2026, 1, 1, 0, 0)));
+                Reservation.create(1L, date, time, theme,
+                    store, LocalDateTime.of(2026, 1, 1, 0, 0)));
             reservationRepository.save(
-                createReservation(2L, date.plusDays(1),
+                Reservation.create(2L, date.plusDays(1),
                     Time.reconstruct(2L, LocalTime.of(11, 0)), theme,
+                    store,
                     LocalDateTime.of(2026, 1, 1, 0, 0)));
             reservationRepository.save(
-                createReservation(3L, date.plusDays(2),
+                Reservation.create(3L, date.plusDays(2),
                     Time.reconstruct(3L, LocalTime.of(12, 0)), theme,
+                    store,
                     LocalDateTime.of(2026, 1, 1, 0, 0)));
-            Long memberId = 1L;
 
             List<ReservationResponseDto> actual = reservationService.getReservationsByMemberId(
                 memberId);
@@ -168,17 +163,17 @@ class ReservationServiceTest {
             Time time = Time.reconstruct(1L, LocalTime.of(10, 0));
             Theme theme = Theme.reconstruct(1L, "테마 이름", "테마 설명",
                 "https://roomescape.com/images/themes/ring-banner.png");
-            Store store1 = storeRepository.findById(1L).orElseThrow();
+            Store store1 = Store.create("강남점").withId(1L);
             Store store2 = Store.create("잠실점").withId(2L);
             Long managerId = 10L;
             reservationRepository.assignStoreToManager(managerId, store1.getId());
             managerStoreRepository.save(ManagerStore.create(managerId, store1.getId()));
 
             reservationRepository.save(
-                createReservation(1L, date, time, theme, store1,
+                Reservation.create(1L, date, time, theme, store1,
                     LocalDateTime.of(2026, 1, 1, 0, 0)));
             reservationRepository.save(
-                createReservation(2L, date.plusDays(1),
+                Reservation.create(2L, date.plusDays(1),
                     Time.reconstruct(2L, LocalTime.of(11, 0)), theme, store2,
                     LocalDateTime.of(2026, 1, 1, 0, 0)));
 
@@ -202,7 +197,6 @@ class ReservationServiceTest {
         @Test
         @DisplayName("예약을 생성하고, 생성된 예약을 반환한다.")
         void 성공() {
-
             // given
             Long memberId = 1L;
             ReservationCreateRequestDto request = new ReservationCreateRequestDto(
@@ -212,7 +206,7 @@ class ReservationServiceTest {
                 1L
             );
 
-            themeRepository.save(Theme.create("피온", "테마 설명",
+            themeRepository.save(Theme.create("테마명", "테마 설명",
                 "https://roomescape.com/images/themes/ring-banner.png"));
             timeRepository.save(Time.create(LocalTime.of(15, 30)));
 
@@ -239,21 +233,23 @@ class ReservationServiceTest {
             Time time = timeRepository.save(Time.create(LocalTime.of(15, 30)));
             Theme theme = themeRepository.save(Theme.create("테마명", "테마 설명",
                 "https://roomescape.com/images/themes/ring-banner.png"));
+            Store store = storeRepository.save(Store.create("지점명"));
             Long memberId = 1L;
             ReservationCreateRequestDto request = new ReservationCreateRequestDto(
                 LocalDate.of(2026, 5, 1),
                 time.getId(),
                 theme.getId(),
-                1L
+                store.getId()
             );
             reservationRepository.save(
-                reservationRepository.save(
-                    createReservation(memberId, request.date(), time, theme,
-                        LocalDateTime.of(2026, 1, 1, 0, 0))));
+                Reservation.create(memberId, request.date(), time, theme, store,
+                    LocalDateTime.of(2026, 1, 1, 0, 0)));
 
             assertThatThrownBy(() -> reservationService.saveReservation(memberId, request,
                 LocalDateTime.of(2026, 1, 1, 0, 0)))
-                .isInstanceOf(BusinessException.class);
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(ErrorCode.RESERVATION_DUPLICATE);
         }
 
         @Test
@@ -301,14 +297,183 @@ class ReservationServiceTest {
             Time time = timeRepository.save(Time.create(LocalTime.of(15, 30)));
             Theme theme = themeRepository.save(Theme.create("테마명", "테마 설명",
                 "https://roomescape.com/images/themes/ring-banner.png"));
+            Store store = storeRepository.save(Store.create("지점명"));
             ReservationCreateRequestDto request = new ReservationCreateRequestDto(
                 LocalDate.of(2025, 12, 31),
                 time.getId(),
                 theme.getId(),
-                1L
+                store.getId()
             );
 
             assertThatThrownBy(() -> reservationService.saveReservation(1L, request,
+                LocalDateTime.of(2026, 1, 1, 0, 0)))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(ErrorCode.RESERVATION_ALREADY_PASSED);
+        }
+    }
+
+    @Nested
+    @DisplayName("saveManagerReservation 테스트")
+    class SaveManagerReservationTest {
+
+        @Test
+        @DisplayName("예약을 생성하고, 생성된 예약을 반환한다.")
+        void 성공() {
+            Long memberId = 1L;
+            Time time = timeRepository.save(Time.create(LocalTime.of(15, 30)));
+            Theme theme = themeRepository.save(Theme.create("테마명", "테마 설명",
+                "https://roomescape.com/images/themes/ring-banner.png"));
+            Store store = storeRepository.save(Store.create("지점명"));
+            StaffReservationCreateRequestDto request = new StaffReservationCreateRequestDto(
+                LocalDate.of(2026, 5, 1),
+                memberId,
+                time.getId(),
+                theme.getId(),
+                store.getId()
+            );
+
+            ReservationCreateResponseDto actual = reservationService.saveManagerReservation(
+                request, LocalDateTime.of(2026, 1, 1, 0, 0));
+
+            assertAll(
+                () -> assertEquals(1L, actual.id()),
+                () -> assertEquals(memberId, actual.memberId()),
+                () -> assertEquals(LocalDate.of(2026, 5, 1), actual.date()),
+                () -> assertEquals(time.getId(), actual.timeId()),
+                () -> assertEquals(theme.getId(), actual.themeId()),
+                () -> assertEquals(store.getId(), actual.storeId()),
+                () -> assertEquals(1, reservationRepository.findAllReservations().size())
+            );
+        }
+
+        @Test
+        @DisplayName("요청한 시간 id가 존재하지 않으면 예외가 발생한다.")
+        void 실패1() {
+            Theme theme = themeRepository.save(Theme.create("테마명", "테마 설명",
+                "https://roomescape.com/images/themes/ring-banner.png"));
+            Store store = storeRepository.save(Store.create("지점명"));
+            StaffReservationCreateRequestDto request = new StaffReservationCreateRequestDto(
+                LocalDate.of(2026, 5, 1),
+                1L,
+                99999L,
+                theme.getId(),
+                store.getId()
+            );
+
+            assertThatThrownBy(() -> reservationService.saveManagerReservation(request,
+                LocalDateTime.of(2026, 1, 1, 0, 0)))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(ErrorCode.COMMON_INVALID_REQUEST_BODY);
+        }
+
+        @Test
+        @DisplayName("요청한 테마 id가 존재하지 않으면 예외가 발생한다.")
+        void 실패2() {
+            Time time = timeRepository.save(Time.create(LocalTime.of(15, 30)));
+            Store store = storeRepository.save(Store.create("지점명"));
+            StaffReservationCreateRequestDto request = new StaffReservationCreateRequestDto(
+                LocalDate.of(2026, 5, 1),
+                1L,
+                time.getId(),
+                99999L,
+                store.getId()
+            );
+
+            assertThatThrownBy(() -> reservationService.saveManagerReservation(request,
+                LocalDateTime.of(2026, 1, 1, 0, 0)))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(ErrorCode.COMMON_INVALID_REQUEST_BODY);
+        }
+
+        @Test
+        @DisplayName("요청한 지점 id가 존재하지 않으면 예외가 발생한다.")
+        void 실패3() {
+            Time time = timeRepository.save(Time.create(LocalTime.of(15, 30)));
+            Theme theme = themeRepository.save(Theme.create("테마명", "테마 설명",
+                "https://roomescape.com/images/themes/ring-banner.png"));
+            StaffReservationCreateRequestDto request = new StaffReservationCreateRequestDto(
+                LocalDate.of(2026, 5, 1),
+                1L,
+                time.getId(),
+                theme.getId(),
+                99999L
+            );
+
+            assertThatThrownBy(() -> reservationService.saveManagerReservation(request,
+                LocalDateTime.of(2026, 1, 1, 0, 0)))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(ErrorCode.COMMON_INVALID_REQUEST_BODY);
+        }
+
+        @Test
+        @DisplayName("다른 매장의 예약 생성을 시도하면 예외가 발생한다.")
+        void 실패4() {
+            Long memberId = 1L;
+            Time time = timeRepository.save(Time.create(LocalTime.of(15, 30)));
+            Theme theme = themeRepository.save(Theme.create("테마명", "테마 설명",
+                "https://roomescape.com/images/themes/ring-banner.png"));
+            Store store = storeRepository.save(Store.create("지점명"));
+            managerStoreRepository.save(ManagerStore.create(memberId, store.getId()));
+            StaffReservationCreateRequestDto request = new StaffReservationCreateRequestDto(
+                LocalDate.of(2026, 5, 1),
+                memberId,
+                time.getId(),
+                theme.getId(),
+                store.getId()
+            );
+
+            assertThatThrownBy(() -> reservationService.saveManagerReservation(request,
+                LocalDateTime.of(2026, 1, 1, 0, 0)))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(ErrorCode.RESERVATION_FORBIDDEN);
+        }
+
+        @Test
+        @DisplayName("같은 지점, 날짜, 시간과 테마가 모두 같은 예약이 존재하는 경우 예외가 발생한다.")
+        void 실패5() {
+            Long memberId = 1L;
+            Time time = timeRepository.save(Time.create(LocalTime.of(15, 30)));
+            Theme theme = themeRepository.save(Theme.create("테마명", "테마 설명",
+                "https://roomescape.com/images/themes/ring-banner.png"));
+            Store store = storeRepository.save(Store.create("지점명"));
+            StaffReservationCreateRequestDto request = new StaffReservationCreateRequestDto(
+                LocalDate.of(2026, 5, 1),
+                memberId,
+                time.getId(),
+                theme.getId(),
+                store.getId()
+            );
+            reservationRepository.save(Reservation.create(memberId, request.date(), time, theme,
+                store, LocalDateTime.of(2026, 1, 1, 0, 0)));
+
+            assertThatThrownBy(() -> reservationService.saveManagerReservation(request,
+                LocalDateTime.of(2026, 1, 1, 0, 0)))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(ErrorCode.RESERVATION_DUPLICATE);
+        }
+
+        @Test
+        @DisplayName("지난 날짜와 시간으로 예약을 생성하려고 하면 예외가 발생한다.")
+        void 실패6() {
+            Time time = timeRepository.save(Time.create(LocalTime.of(15, 30)));
+            Theme theme = themeRepository.save(Theme.create("테마명", "테마 설명",
+                "https://roomescape.com/images/themes/ring-banner.png"));
+            Store store = storeRepository.save(Store.create("지점명"));
+            StaffReservationCreateRequestDto request = new StaffReservationCreateRequestDto(
+                LocalDate.of(2025, 12, 31),
+                1L,
+                time.getId(),
+                theme.getId(),
+                store.getId()
+            );
+
+            assertThatThrownBy(() -> reservationService.saveManagerReservation(request,
                 LocalDateTime.of(2026, 1, 1, 0, 0)))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
@@ -325,10 +490,11 @@ class ReservationServiceTest {
         void 성공1() {
             Long memberId = 1L;
             Reservation savedReservation = reservationRepository.save(
-                createReservation(memberId, LocalDate.of(2026, 5, 3),
+                Reservation.create(memberId, LocalDate.of(2026, 5, 3),
                     Time.reconstruct(2L, LocalTime.of(13, 0)),
                     Theme.reconstruct(1L, "테마 이름", "테마 설명",
                         "https://roomescape.com/images/themes/ring-banner.png"),
+                    Store.create("강남점").withId(1L),
                     LocalDateTime.of(2026, 1, 1, 0, 0)));
             Long id = savedReservation.getId();
             LocalDate changeDate = LocalDate.of(2026, 5, 2);
@@ -354,9 +520,10 @@ class ReservationServiceTest {
             Long memberId = 1L;
             Time time = timeRepository.save(Time.create(LocalTime.of(13, 0)));
             Reservation savedReservation = reservationRepository.save(
-                createReservation(memberId, LocalDate.of(2026, 5, 3), time,
+                Reservation.create(memberId, LocalDate.of(2026, 5, 3), time,
                     Theme.reconstruct(1L, "테마 이름", "테마 설명",
                         "https://roomescape.com/images/themes/ring-banner.png"),
+                    Store.create("강남점").withId(1L),
                     LocalDateTime.of(2026, 1, 1, 0, 0)));
             ReservationUpdateRequestDto request = new ReservationUpdateRequestDto(
                 savedReservation.getDate(), time.getId());
@@ -379,10 +546,11 @@ class ReservationServiceTest {
         void 성공3() {
             Long memberId = 1L;
             Reservation savedReservation = reservationRepository.save(
-                createReservation(memberId, LocalDate.of(2026, 1, 1),
+                Reservation.create(memberId, LocalDate.of(2026, 1, 1),
                     Time.reconstruct(1L, LocalTime.of(13, 0)),
                     Theme.reconstruct(1L, "테마 이름", "테마 설명",
                         "https://roomescape.com/images/themes/ring-banner.png"),
+                    Store.create("강남점").withId(1L),
                     LocalDateTime.of(2025, 12, 31, 0, 0)));
             Long changeTimeId = timeRepository.save(Time.create(LocalTime.of(13, 0))).getId();
             ReservationUpdateRequestDto request = new ReservationUpdateRequestDto(
@@ -405,10 +573,11 @@ class ReservationServiceTest {
         void 실패1() {
             Long memberId = 1L;
             Reservation savedReservation = reservationRepository.save(
-                createReservation(memberId, LocalDate.of(2026, 5, 3),
+                Reservation.create(memberId, LocalDate.of(2026, 5, 3),
                     Time.reconstruct(2L, LocalTime.of(13, 0)),
                     Theme.reconstruct(1L, "테마 이름", "테마 설명",
                         "https://roomescape.com/images/themes/ring-banner.png"),
+                    Store.create("강남점").withId(1L),
                     LocalDateTime.of(2026, 1, 1, 0, 0)));
             Long id = savedReservation.getId();
             LocalDate changeDate = LocalDate.of(2026, 5, 2);
@@ -431,10 +600,11 @@ class ReservationServiceTest {
         @DisplayName("요청한 예약에 권한이 없는 경우 예외가 발생한다.")
         void 실패2() {
             Reservation savedReservation = reservationRepository.save(
-                createReservation(1L, LocalDate.of(2026, 5, 3),
+                Reservation.create(1L, LocalDate.of(2026, 5, 3),
                     Time.reconstruct(2L, LocalTime.of(13, 0)),
                     Theme.reconstruct(1L, "테마 이름", "테마 설명",
                         "https://roomescape.com/images/themes/ring-banner.png"),
+                    Store.create("강남점").withId(1L),
                     LocalDateTime.of(2026, 1, 1, 0, 0)));
             Long wrongMemberId = 2L;
             Long id = savedReservation.getId();
@@ -459,11 +629,14 @@ class ReservationServiceTest {
                 "https://roomescape.com/images/themes/ring-banner.png");
             Time originalTime = timeRepository.save(Time.create(LocalTime.of(13, 0)));
             Time duplicatedTime = timeRepository.save(Time.create(LocalTime.of(20, 30)));
+            Store store = storeRepository.save(Store.create("지점명"));
             Reservation savedReservation = reservationRepository.save(
-                createReservation(memberId, LocalDate.of(2026, 5, 3), originalTime, theme,
+                Reservation.create(memberId, LocalDate.of(2026, 5, 3), originalTime, theme,
+                    store,
                     LocalDateTime.of(2026, 1, 1, 0, 0)));
             reservationRepository.save(
-                createReservation(2L, LocalDate.of(2026, 5, 4), duplicatedTime, theme,
+                Reservation.create(2L, LocalDate.of(2026, 5, 4), duplicatedTime, theme,
+                    store,
                     LocalDateTime.of(2026, 1, 1, 0, 0)));
             Long id = savedReservation.getId();
             ReservationUpdateRequestDto request = new ReservationUpdateRequestDto(
@@ -480,11 +653,13 @@ class ReservationServiceTest {
         @DisplayName("지난 예약을 변경하려고 하면 예외가 발생한다.")
         void 실패4() {
             Long memberId = 1L;
+            Store store = storeRepository.save(Store.create("지점명"));
             Reservation savedReservation = reservationRepository.save(
-                createReservation(memberId, LocalDate.of(2025, 12, 31),
+                Reservation.create(memberId, LocalDate.of(2025, 12, 31),
                     Time.reconstruct(2L, LocalTime.of(13, 0)),
                     Theme.reconstruct(1L, "테마 이름", "테마 설명",
                         "https://roomescape.com/images/themes/ring-banner.png"),
+                    store,
                     LocalDateTime.MIN).withId(1L));
             Long id = savedReservation.getId();
             LocalDate changeDate = LocalDate.of(2026, 5, 2);
@@ -503,11 +678,13 @@ class ReservationServiceTest {
         @DisplayName("지난 시점으로 변경하려고 하면 예외가 발생한다.")
         void 실패5() {
             Long memberId = 1L;
+            Store store = storeRepository.save(Store.create("지점명"));
             Reservation savedReservation = reservationRepository.save(
-                createReservation(memberId, LocalDate.of(2026, 5, 3),
+                Reservation.create(memberId, LocalDate.of(2026, 5, 3),
                     Time.reconstruct(2L, LocalTime.of(13, 0)),
                     Theme.reconstruct(1L, "테마 이름", "테마 설명",
                         "https://roomescape.com/images/themes/ring-banner.png"),
+                    store,
                     LocalDateTime.of(2026, 1, 1, 0, 0)));
             Long id = savedReservation.getId();
             LocalDate changeDate = LocalDate.of(2025, 12, 31);
@@ -526,11 +703,13 @@ class ReservationServiceTest {
         @DisplayName("오늘의 지난 시간으로 변경하려고 하면 예외가 발생한다.")
         void 실패6() {
             Long memberId = 1L;
+            Store store = storeRepository.save(Store.create("지점명"));
             Reservation savedReservation = reservationRepository.save(
-                createReservation(memberId, LocalDate.of(2026, 1, 2),
+                Reservation.create(memberId, LocalDate.of(2026, 1, 2),
                     Time.reconstruct(2L, LocalTime.of(13, 0)),
                     Theme.reconstruct(1L, "테마 이름", "테마 설명",
                         "https://roomescape.com/images/themes/ring-banner.png"),
+                    store,
                     LocalDateTime.of(2026, 1, 1, 0, 0)));
             Long pastTimeId = timeRepository.save(Time.create(LocalTime.of(9, 0))).getId();
             ReservationUpdateRequestDto request = new ReservationUpdateRequestDto(
@@ -568,19 +747,21 @@ class ReservationServiceTest {
         @Test
         @DisplayName("주어진 아이디를 가진 예약을 삭제한다.")
         void 성공() {
-
             // given
+            Store store = storeRepository.save(Store.create("지점명"));
             Reservation savedReservation = reservationRepository.save(
-                createReservation(1L, LocalDate.of(2026, 5, 2),
+                Reservation.create(1L, LocalDate.of(2026, 5, 2),
                     Time.reconstruct(1L, LocalTime.of(12, 0)),
                     Theme.reconstruct(1L, "테마 이름", "테마 설명",
                         "https://roomescape.com/images/themes/ring-banner.png"),
+                    store,
                     LocalDateTime.of(2026, 1, 1, 0, 0)));
             reservationRepository.save(
-                createReservation(2L, LocalDate.of(2026, 5, 3),
+                Reservation.create(2L, LocalDate.of(2026, 5, 3),
                     Time.reconstruct(2L, LocalTime.of(13, 0)),
                     Theme.reconstruct(1L, "테마 이름", "테마 설명",
                         "https://roomescape.com/images/themes/ring-banner.png"),
+                    store,
                     LocalDateTime.of(2026, 1, 1, 0, 0)));
 
             // when
@@ -604,17 +785,20 @@ class ReservationServiceTest {
         @DisplayName("본인의 예약을 삭제한다.")
         void 성공() {
             Long memberId = 1L;
+            Store store = storeRepository.save(Store.create("지점명"));
             Reservation savedReservation = reservationRepository.save(
-                createReservation(memberId, LocalDate.of(2026, 5, 3),
+                Reservation.create(memberId, LocalDate.of(2026, 5, 3),
                     Time.reconstruct(1L, LocalTime.of(13, 0)),
                     Theme.reconstruct(1L, "테마 이름", "테마 설명",
                         "https://roomescape.com/images/themes/ring-banner.png"),
+                    store,
                     LocalDateTime.of(2026, 1, 1, 0, 0)));
             reservationRepository.save(
-                createReservation(2L, LocalDate.of(2026, 5, 4),
+                Reservation.create(2L, LocalDate.of(2026, 5, 4),
                     Time.reconstruct(2L, LocalTime.of(14, 0)),
                     Theme.reconstruct(1L, "테마 이름", "테마 설명",
                         "https://roomescape.com/images/themes/ring-banner.png"),
+                    store,
                     LocalDateTime.of(2026, 1, 1, 0, 0)));
 
             reservationService.deleteMemberReservationById(memberId, savedReservation.getId(),
@@ -630,11 +814,13 @@ class ReservationServiceTest {
         @Test
         @DisplayName("다른 사용자의 예약을 삭제하려고 하면 예외가 발생한다.")
         void 실패1() {
+            Store store = storeRepository.save(Store.create("지점명"));
             Reservation savedReservation = reservationRepository.save(
-                createReservation(1L, LocalDate.of(2026, 5, 3),
+                Reservation.create(1L, LocalDate.of(2026, 5, 3),
                     Time.reconstruct(1L, LocalTime.of(13, 0)),
                     Theme.reconstruct(1L, "테마 이름", "테마 설명",
                         "https://roomescape.com/images/themes/ring-banner.png"),
+                    store,
                     LocalDateTime.of(2026, 1, 1, 0, 0)));
 
             assertThatThrownBy(() -> reservationService.deleteMemberReservationById(2L,
@@ -661,11 +847,13 @@ class ReservationServiceTest {
         @DisplayName("지난 예약을 삭제하려고 하면 예외가 발생한다.")
         void 실패3() {
             Long memberId = 1L;
+            Store store = storeRepository.save(Store.create("지점명"));
             Reservation savedReservation = reservationRepository.save(
-                createReservation(memberId, LocalDate.of(2025, 12, 31),
+                Reservation.create(memberId, LocalDate.of(2025, 12, 31),
                     Time.reconstruct(1L, LocalTime.of(13, 0)),
                     Theme.reconstruct(1L, "테마 이름", "테마 설명",
                         "https://roomescape.com/images/themes/ring-banner.png"),
+                    store,
                     LocalDateTime.MIN).withId(1L));
 
             assertThatThrownBy(() -> reservationService.deleteMemberReservationById(memberId,

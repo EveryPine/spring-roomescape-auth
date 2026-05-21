@@ -46,6 +46,17 @@ public class JdbcManagerStoreRepository implements ManagerStoreRepository {
         return jdbcTemplate.query(sql, parameters, this::mapManagerStore);
     }
 
+    @Override
+    public boolean existsByManagerIdAndStoreId(Long managerId, Long storeId) {
+        String sql = "SELECT EXISTS (SELECT 1 FROM manager_store WHERE manager_id = :manager_id AND store_id = :store_id)";
+        SqlParameterSource parameters = new MapSqlParameterSource(Map.of(
+            "manager_id", managerId,
+            "store_id", storeId
+        ));
+
+        return Boolean.TRUE.equals(jdbcTemplate.queryForObject(sql, parameters, Boolean.class));
+    }
+
     private ManagerStore mapManagerStore(ResultSet resultSet, int rowNum) throws SQLException {
         return ManagerStore.create(
                 resultSet.getLong("manager_id"),

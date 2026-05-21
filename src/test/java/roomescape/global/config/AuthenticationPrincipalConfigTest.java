@@ -72,7 +72,11 @@ class AuthenticationPrincipalConfigTest {
     @Test
     @DisplayName("로그아웃 API는 토큰이 없으면 401을 반환한다.")
     void 로그아웃_API_인증_실패() {
-        given().when().post("/api/auth/logout").then().statusCode(401)
+        given()
+            .when()
+            .post("/api/auth/logout")
+            .then()
+            .statusCode(401)
             .body("message", equalTo(ErrorCode.AUTH_UNAUTHORIZED.getMessage()));
     }
 

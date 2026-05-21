@@ -38,6 +38,15 @@ public class JdbcStoreRepository implements StoreRepository {
         }
     }
 
+    @Override
+    public Store save(Store store) {
+        SqlParameterSource parameters = new MapSqlParameterSource("name", store.getName());
+        Long generatedKey = simpleJdbcInsert.executeAndReturnKey(parameters)
+            .longValue();
+
+        return store.withId(generatedKey);
+    }
+
     private Store mapStore(ResultSet resultSet, int rowNum) throws SQLException {
         return Store.create(resultSet.getString("name"))
             .withId(resultSet.getLong("id"));

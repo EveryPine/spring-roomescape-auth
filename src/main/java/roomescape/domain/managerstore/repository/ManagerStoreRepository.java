@@ -8,4 +8,6 @@ public interface ManagerStoreRepository {
     ManagerStore save(ManagerStore managerStore);
 
     List<ManagerStore> findByManagerId(Long managerId);
+
+    boolean existsByManagerIdAndStoreId(Long managerId, Long storeId);
 }

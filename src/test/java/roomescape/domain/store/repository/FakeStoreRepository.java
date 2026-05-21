@@ -16,6 +16,7 @@ public class FakeStoreRepository implements StoreRepository {
         save(Store.create("강남점"));
     }
 
+    @Override
     public Store save(Store store) {
         Store savedStore = Store.create(store.getName()).withId(id.addAndGet(1));
         stores.add(savedStore);
