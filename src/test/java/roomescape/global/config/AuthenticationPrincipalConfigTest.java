@@ -63,6 +63,28 @@ class AuthenticationPrincipalConfigTest {
     }
 
     @Test
+    @DisplayName("매니저 API는 토큰이 없으면 401을 반환한다.")
+    void 매니저_API_인증_실패() {
+        given().when().get("/api/manager/reservations").then().statusCode(401)
+            .body("message", equalTo(ErrorCode.AUTH_UNAUTHORIZED.getMessage()));
+    }
+
+    @Test
+    @DisplayName("매니저 API는 사용자 토큰이면 403을 반환한다.")
+    void 매니저_API_인가_실패() {
+        given().header("Authorization", "Bearer " + token(Role.USER)).when()
+            .get("/api/manager/reservations")
+            .then().statusCode(403).body("message", equalTo(ErrorCode.AUTH_FORBIDDEN.getMessage()));
+    }
+
+    @Test
+    @DisplayName("매니저 API는 매니저 토큰이면 통과한다.")
+    void 매니저_API_인가_성공() {
+        given().header("Authorization", "Bearer " + token(Role.MANAGER)).when()
+            .get("/api/manager/reservations").then().statusCode(200);
+    }
+
+    @Test
     @DisplayName("사용자 예약 API는 토큰이 없으면 401을 반환한다.")
     void 사용자_예약_API_인증_실패() {
         given().when().get("/api/reservations").then().statusCode(401)
