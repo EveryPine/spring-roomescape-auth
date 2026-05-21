@@ -85,7 +85,7 @@ class TimeServiceTest {
 
         @Test
         @DisplayName("주어진 날짜와 테마 아이디를 가진 예약 리스트에 없는 시간을 조회한다.")
-        void 성공() {
+        void 성공1() {
 
             // given
             Time time1 = timeRepository.save(Time.create(LocalTime.of(18, 0)));
@@ -135,6 +135,28 @@ class TimeServiceTest {
             // when
             List<TimeResponseDto> actual = timeService.getAvailableTimes(date, themeId, 1L,
                 LocalDateTime.of(2026, 1, 1, 0, 0));
+
+            // then
+            assertThat(actual).isEqualTo(expected);
+        }
+
+        @Test
+        @DisplayName("미래 날짜로 조회하면 현재 시각보다 이른 시간도 예약 가능 시간에 포함한다.")
+        void 성공2() {
+
+            // given
+            Time time1 = timeRepository.save(Time.create(LocalTime.of(10, 0)));
+            Time time2 = timeRepository.save(Time.create(LocalTime.of(16, 0)));
+            Theme theme = themeRepository.save(Theme.create("테마명", "테마 설명", "썸네일 url"));
+
+            LocalDate date = LocalDate.of(2026, 5, 10);
+            Long themeId = theme.getId();
+            List<TimeResponseDto> expected = List.of(TimeResponseDto.from(time1),
+                TimeResponseDto.from(time2));
+
+            // when
+            List<TimeResponseDto> actual = timeService.getAvailableTimes(date, themeId, 1L,
+                LocalDateTime.of(2026, 1, 1, 15, 0));
 
             // then
             assertThat(actual).isEqualTo(expected);

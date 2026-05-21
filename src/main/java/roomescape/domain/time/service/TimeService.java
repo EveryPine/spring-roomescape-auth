@@ -52,7 +52,7 @@ public class TimeService {
         return timeRepository.findAllTimes()
             .stream()
             .filter(time -> !reservedTimeIds.contains(time.getId()))
-            .filter(time -> !time.isPast(now.toLocalTime()))
+            .filter(time -> !date.isEqual(now.toLocalDate()) || !time.isPast(now.toLocalTime()))
             .map(TimeResponseDto::from)
             .toList();
     }
