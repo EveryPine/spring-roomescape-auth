@@ -1,6 +1,7 @@
 package roomescape.domain.store.repository;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -21,6 +22,11 @@ public class FakeStoreRepository implements StoreRepository {
         Store savedStore = Store.create(store.getName()).withId(id.addAndGet(1));
         stores.add(savedStore);
         return savedStore;
+    }
+
+    @Override
+    public List<Store> findAll() {
+        return Collections.unmodifiableList(stores);
     }
 
     @Override

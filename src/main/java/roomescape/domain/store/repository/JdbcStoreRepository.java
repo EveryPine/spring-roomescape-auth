@@ -2,6 +2,7 @@ package roomescape.domain.store.repository;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.List;
 import java.util.Optional;
 import javax.sql.DataSource;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -24,6 +25,13 @@ public class JdbcStoreRepository implements StoreRepository {
             .withTableName("store")
             .usingGeneratedKeyColumns("id")
             .usingColumns("name");
+    }
+
+    @Override
+    public List<Store> findAll() {
+        String sql = "SELECT id, name FROM store";
+
+        return jdbcTemplate.query(sql, this::mapStore);
     }
 
     @Override
