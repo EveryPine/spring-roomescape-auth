@@ -222,6 +222,16 @@ public class ReservationService {
         reservationRepository.deleteReservationById(id);
     }
 
+    @Transactional
+    public void deleteManagerReservationById(Long managerId, Long id, LocalDateTime now) {
+        Reservation reservation = getReservationById(id);
+        validateManagerStore(managerId, reservation.getStore().getId());
+        validateDateAccessable(reservation, now);
+        if (reservationRepository.deleteReservationById(id) == 0) {
+            throw new BusinessException(ErrorCode.RESERVATION_NOT_FOUND);
+        }
+    }
+
     private void validateOwner(Long memberId, Reservation reservation) {
         if (!reservation.isOwner(memberId)) {
             throw new BusinessException(ErrorCode.RESERVATION_FORBIDDEN);

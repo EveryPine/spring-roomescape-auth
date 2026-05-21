@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -53,6 +54,15 @@ public class ManagerReservationController {
         @Valid @RequestBody ReservationUpdateRequestDto request) {
         LocalDateTime now = LocalDateTime.now();
         reservationService.updateManagerReservation(member.getId(), id, request, now);
+
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteReservation(@PathVariable Long id,
+        @LoginMember Member member) {
+        LocalDateTime now = LocalDateTime.now();
+        reservationService.deleteManagerReservationById(member.getId(), id, now);
 
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }

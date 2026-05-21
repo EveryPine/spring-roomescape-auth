@@ -1011,6 +1011,95 @@ class ReservationServiceTest {
     }
 
     @Nested
+    @DisplayName("deleteManagerReservationById 테스트")
+    class DeleteManagerReservationByIdTest {
+
+        @Test
+        @DisplayName("담당 지점의 예약을 삭제한다.")
+        void 성공() {
+            Long managerId = manager.getId();
+            Store store = Store.create("지점명").withId(1L);
+            managerStoreRepository.save(ManagerStore.create(managerId, store.getId()));
+            Reservation savedReservation = reservationRepository.save(
+                Reservation.create(1L, LocalDate.of(2026, 5, 3),
+                    Time.reconstruct(1L, LocalTime.of(13, 0)),
+                    Theme.reconstruct(1L, "테마 이름", "테마 설명",
+                        "https://roomescape.com/images/themes/ring-banner.png"),
+                    store,
+                    LocalDateTime.of(2026, 1, 1, 0, 0)));
+            reservationRepository.save(
+                Reservation.create(2L, LocalDate.of(2026, 5, 4),
+                    Time.reconstruct(2L, LocalTime.of(14, 0)),
+                    Theme.reconstruct(1L, "테마 이름", "테마 설명",
+                        "https://roomescape.com/images/themes/ring-banner.png"),
+                    store,
+                    LocalDateTime.of(2026, 1, 1, 0, 0)));
+
+            reservationService.deleteManagerReservationById(managerId, savedReservation.getId(),
+                LocalDateTime.of(2026, 1, 1, 0, 0));
+
+            List<ReservationResponseDto> actual = reservationService.getReservations();
+            assertAll(
+                () -> assertEquals(1, actual.size()),
+                () -> assertEquals(LocalDate.of(2026, 5, 4), actual.getFirst().date())
+            );
+        }
+
+        @Test
+        @DisplayName("담당하지 않는 매장의 예약을 삭제하려고 하면 예외가 발생한다.")
+        void 실패1() {
+            Long managerId = manager.getId();
+            Store store = Store.create("지점명").withId(1L);
+            Reservation savedReservation = reservationRepository.save(
+                Reservation.create(1L, LocalDate.of(2026, 5, 3),
+                    Time.reconstruct(1L, LocalTime.of(13, 0)),
+                    Theme.reconstruct(1L, "테마 이름", "테마 설명",
+                        "https://roomescape.com/images/themes/ring-banner.png"),
+                    store,
+                    LocalDateTime.of(2026, 1, 1, 0, 0)));
+
+            assertThatThrownBy(() -> reservationService.deleteManagerReservationById(managerId,
+                savedReservation.getId(), LocalDateTime.of(2026, 1, 1, 0, 0)))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(ErrorCode.RESERVATION_FORBIDDEN);
+        }
+
+        @Test
+        @DisplayName("존재하지 않는 예약을 삭제하려고 하면 예외가 발생한다.")
+        void 실패2() {
+            Long notFoundId = 99999L;
+
+            assertThatThrownBy(() -> reservationService.deleteManagerReservationById(
+                manager.getId(), notFoundId, LocalDateTime.of(2026, 1, 1, 0, 0)))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(ErrorCode.RESERVATION_NOT_FOUND);
+        }
+
+        @Test
+        @DisplayName("지난 예약을 삭제하려고 하면 예외가 발생한다.")
+        void 실패3() {
+            Long managerId = manager.getId();
+            Store store = Store.create("지점명").withId(1L);
+            managerStoreRepository.save(ManagerStore.create(managerId, store.getId()));
+            Reservation savedReservation = reservationRepository.save(
+                Reservation.create(1L, LocalDate.of(2025, 12, 31),
+                    Time.reconstruct(1L, LocalTime.of(13, 0)),
+                    Theme.reconstruct(1L, "테마 이름", "테마 설명",
+                        "https://roomescape.com/images/themes/ring-banner.png"),
+                    store,
+                    LocalDateTime.MIN).withId(1L));
+
+            assertThatThrownBy(() -> reservationService.deleteManagerReservationById(managerId,
+                savedReservation.getId(), LocalDateTime.of(2026, 1, 1, 0, 0)))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(ErrorCode.RESERVATION_ALREADY_PASSED);
+        }
+    }
+
+    @Nested
     @DisplayName("deleteMemberReservationById 테스트")
     class DeleteMemberReservationByIdTest {
 
