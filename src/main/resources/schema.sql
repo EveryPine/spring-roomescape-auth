@@ -18,13 +18,6 @@ CREATE TABLE token
     FOREIGN KEY (member_id) REFERENCES member (id) ON DELETE CASCADE
 );
 
-CREATE TABLE token_blacklist
-(
-    id         BIGINT        NOT NULL AUTO_INCREMENT,
-    token      VARCHAR(1000) NOT NULL,
-    expired_at TIMESTAMP     NOT NULL
-);
-
 CREATE TABLE store
 (
     id   BIGINT       NOT NULL AUTO_INCREMENT,

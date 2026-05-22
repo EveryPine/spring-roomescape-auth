@@ -17,10 +17,8 @@ import roomescape.global.auth.entity.Member;
 import roomescape.global.auth.entity.Role;
 import roomescape.global.auth.entity.Token;
 import roomescape.global.auth.repository.FakeMemberRepository;
-import roomescape.global.auth.repository.FakeTokenBlacklistRepository;
 import roomescape.global.auth.repository.FakeTokenRepository;
 import roomescape.global.auth.repository.MemberRepository;
-import roomescape.global.auth.repository.TokenBlacklistRepository;
 import roomescape.global.error.ErrorCode;
 import roomescape.global.error.exception.BusinessException;
 
@@ -28,19 +26,16 @@ class AuthServiceTest {
 
     private final MemberRepository memberRepository;
     private final FakeTokenRepository tokenRepository;
-    private final TokenBlacklistRepository tokenBlacklistRepository;
     private final JwtProvider jwtProvider;
     private final AuthService authService;
 
     AuthServiceTest() {
         this.memberRepository = new FakeMemberRepository();
         this.tokenRepository = new FakeTokenRepository();
-        this.tokenBlacklistRepository = new FakeTokenBlacklistRepository();
         this.jwtProvider = new JwtProvider(secretKey(), 3_600_000L);
         this.authService = new AuthService(
             memberRepository,
             tokenRepository,
-            tokenBlacklistRepository,
             jwtProvider
         );
     }

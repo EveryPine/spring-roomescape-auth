@@ -10,7 +10,6 @@ import roomescape.global.auth.entity.Member;
 import roomescape.global.auth.entity.Role;
 import roomescape.global.auth.entity.Token;
 import roomescape.global.auth.repository.MemberRepository;
-import roomescape.global.auth.repository.TokenBlacklistRepository;
 import roomescape.global.auth.repository.TokenRepository;
 import roomescape.global.error.ErrorCode;
 import roomescape.global.error.exception.BusinessException;
@@ -21,14 +20,12 @@ public class AuthService {
 
     private final MemberRepository memberRepository;
     private final TokenRepository tokenRepository;
-    private final TokenBlacklistRepository tokenBlacklistRepository;
     private final JwtProvider jwtProvider;
 
     public AuthService(MemberRepository memberRepository, TokenRepository tokenRepository,
-        TokenBlacklistRepository tokenBlacklistRepository, JwtProvider jwtProvider) {
+        JwtProvider jwtProvider) {
         this.memberRepository = memberRepository;
         this.tokenRepository = tokenRepository;
-        this.tokenBlacklistRepository = tokenBlacklistRepository;
         this.jwtProvider = jwtProvider;
     }
 
