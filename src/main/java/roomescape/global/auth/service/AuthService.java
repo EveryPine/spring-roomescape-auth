@@ -9,7 +9,6 @@ import roomescape.global.auth.dto.request.MemberCreateRequestDto;
 import roomescape.global.auth.entity.Member;
 import roomescape.global.auth.entity.Role;
 import roomescape.global.auth.entity.Token;
-import roomescape.global.auth.entity.TokenBlacklist;
 import roomescape.global.auth.repository.MemberRepository;
 import roomescape.global.auth.repository.TokenBlacklistRepository;
 import roomescape.global.auth.repository.TokenRepository;
@@ -61,10 +60,7 @@ public class AuthService {
     }
 
     @Transactional
-    public void logout(String accessToken) {
-        TokenBlacklist tokenBlacklist = TokenBlacklist.create(accessToken,
-            jwtProvider.extractExpiration(accessToken));
-
-        tokenBlacklistRepository.save(tokenBlacklist);
+    public void logout(Long memberId) {
+        tokenRepository.deleteByMemberId(memberId);
     }
 }

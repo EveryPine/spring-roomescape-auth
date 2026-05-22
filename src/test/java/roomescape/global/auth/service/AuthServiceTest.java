@@ -206,7 +206,7 @@ class AuthServiceTest {
     class LogoutTest {
 
         @Test
-        @DisplayName("유효한 토큰으로 로그아웃하면 토큰을 블랙리스트에 저장한다.")
+        @DisplayName("인증된 이용자가 로그아웃하면 이용자가 가지고 있는 토큰이 무효화된다.")
         void 성공() {
             // given
             Member member = authService.saveMember(
@@ -216,24 +216,10 @@ class AuthServiceTest {
             String token = jwtProvider.generateToken(member);
 
             // when
-            authService.logout(token);
+            authService.logout(member.getId());
 
             // then
-            assertThat(tokenBlacklistRepository.existsByToken(token)).isTrue();
-        }
-
-        @Test
-        @DisplayName("유효하지 않은 토큰으로 로그아웃하면 401 Unauthorized 예외가 발생한다.")
-        void 실패1() {
-            // given
-            String invalidToken = "invalid-token";
-
-            // when & then
-            assertThatThrownBy(() -> authService.logout(invalidToken))
-                .isInstanceOf(BusinessException.class)
-                .extracting("errorCode")
-                .isEqualTo(ErrorCode.AUTH_INVALID_TOKEN);
-            assertThat(tokenBlacklistRepository.existsByToken(invalidToken)).isFalse();
+            assertThat(tokenRepository.findByMemberId(member.getId())).isEmpty();
         }
     }
 
