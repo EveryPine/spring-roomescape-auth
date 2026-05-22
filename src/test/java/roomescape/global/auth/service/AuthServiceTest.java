@@ -15,8 +15,10 @@ import roomescape.global.auth.dto.request.LoginRequestDto;
 import roomescape.global.auth.dto.request.MemberCreateRequestDto;
 import roomescape.global.auth.entity.Member;
 import roomescape.global.auth.entity.Role;
+import roomescape.global.auth.entity.Token;
 import roomescape.global.auth.repository.FakeMemberRepository;
 import roomescape.global.auth.repository.FakeTokenBlacklistRepository;
+import roomescape.global.auth.repository.FakeTokenRepository;
 import roomescape.global.auth.repository.MemberRepository;
 import roomescape.global.auth.repository.TokenBlacklistRepository;
 import roomescape.global.error.ErrorCode;
@@ -25,15 +27,22 @@ import roomescape.global.error.exception.BusinessException;
 class AuthServiceTest {
 
     private final MemberRepository memberRepository;
+    private final FakeTokenRepository tokenRepository;
     private final TokenBlacklistRepository tokenBlacklistRepository;
     private final JwtProvider jwtProvider;
     private final AuthService authService;
 
     AuthServiceTest() {
         this.memberRepository = new FakeMemberRepository();
+        this.tokenRepository = new FakeTokenRepository();
         this.tokenBlacklistRepository = new FakeTokenBlacklistRepository();
         this.jwtProvider = new JwtProvider(secretKey(), 3_600_000L);
-        this.authService = new AuthService(memberRepository, tokenBlacklistRepository, jwtProvider);
+        this.authService = new AuthService(
+            memberRepository,
+            tokenRepository,
+            tokenBlacklistRepository,
+            jwtProvider
+        );
     }
 
     @Nested
@@ -93,7 +102,7 @@ class AuthServiceTest {
 
         @Test
         @DisplayName("올바른 아이디와 비밀번호로 로그인하면 accessToken을 반환한다.")
-        void 성공() {
+        void 성공1() {
             // given
             authService.saveMember(
                 new MemberCreateRequestDto("브라운", "memberId123", "password123!"),
@@ -106,6 +115,59 @@ class AuthServiceTest {
 
             // then
             assertThat(actual).isNotBlank();
+        }
+
+        @Test
+        @DisplayName("로그인에 성공하면 accessToken을 저장한다.")
+        void 성공2() {
+            // given
+            Member member = authService.saveMember(
+                new MemberCreateRequestDto("브라운", "memberId123", "password123!"),
+                Role.USER
+            );
+            LoginRequestDto request = new LoginRequestDto("memberId123", "password123!");
+
+            // when
+            String actual = authService.login(request);
+
+            // then
+            Token savedToken = tokenRepository.findByMemberId(member.getId())
+                .orElseThrow();
+            assertAll(
+                () -> assertThat(savedToken.getMemberId()).isEqualTo(member.getId()),
+                () -> assertThat(savedToken.getToken()).isEqualTo(actual),
+                () -> assertThat(savedToken.getExpiredAt())
+                    .isEqualTo(jwtProvider.extractExpiration(actual))
+            );
+        }
+
+        @Test
+        @DisplayName("로그인에 성공하면 같은 회원의 기존 accessToken을 삭제하고 새 accessToken만 저장한다.")
+        void 성공3() {
+            // given
+            Member member = authService.saveMember(
+                new MemberCreateRequestDto("브라운", "memberId123", "password123!"),
+                Role.USER
+            );
+            Token oldToken = Token.create(
+                member.getId(),
+                "old-token",
+                jwtProvider.extractExpiration(jwtProvider.generateToken(member))
+            );
+            tokenRepository.save(oldToken);
+            LoginRequestDto request = new LoginRequestDto("memberId123", "password123!");
+
+            // when
+            String actual = authService.login(request);
+
+            // then
+            assertAll(
+                () -> assertThat(tokenRepository.findAllByMemberId(member.getId())).hasSize(1),
+                () -> assertThat(tokenRepository.findByMemberId(member.getId()))
+                    .get()
+                    .extracting(Token::getToken)
+                    .isEqualTo(actual)
+            );
         }
 
         @Test

@@ -1,6 +1,5 @@
 package roomescape.global.auth.service;
 
-import java.util.Optional;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import roomescape.global.auth.JwtProvider;
@@ -45,16 +44,19 @@ public class AuthService {
         return memberRepository.save(member);
     }
 
+    @Transactional
     public String login(LoginRequestDto request) {
-        Optional<Member> member = memberRepository.findByLoginId(request.loginId());
-        if (member.isEmpty() || !PasswordEncoder.matches(request.password(),
-            member.get().getPassword())) {
+        Member member = memberRepository.findByLoginId(request.loginId())
+            .orElseThrow(() -> new BusinessException(ErrorCode.AUTH_LOGIN_FAILED));
+        if (!PasswordEncoder.matches(request.password(), member.getPassword())) {
             throw new BusinessException(ErrorCode.AUTH_LOGIN_FAILED);
         }
 
-        String token = jwtProvider.generateToken(member.get());
-        tokenRepository.save(Token.create(token, jwtProvider.extractExpiration(token)));
-        
+        String token = jwtProvider.generateToken(member);
+        tokenRepository.deleteByMemberId(member.getId());
+        tokenRepository.save(
+            Token.create(member.getId(), token, jwtProvider.extractExpiration(token)));
+
         return token;
     }
 

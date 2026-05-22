@@ -20,12 +20,13 @@ public class JdbcTokenRepository implements TokenRepository {
         this.simpleJdbcInsert = new SimpleJdbcInsert(dataSource)
             .withTableName("token")
             .usingGeneratedKeyColumns("id")
-            .usingColumns("token", "expired_at");
+            .usingColumns("member_id", "token", "expired_at");
     }
 
     @Override
     public Token save(Token token) {
         SqlParameterSource parameters = new MapSqlParameterSource(Map.of(
+            "member_id", token.getMemberId(),
             "token", token.getToken(),
             "expired_at", token.getExpiredAt()
         ));
@@ -33,5 +34,13 @@ public class JdbcTokenRepository implements TokenRepository {
             .longValue();
 
         return token.withId(generatedKey);
+    }
+
+    @Override
+    public int deleteByMemberId(Long memberId) {
+        String sql = "DELETE FROM token WHERE member_id = :memberId";
+        SqlParameterSource parameters = new MapSqlParameterSource("memberId", memberId);
+
+        return jdbcTemplate.update(sql, parameters);
     }
 }
