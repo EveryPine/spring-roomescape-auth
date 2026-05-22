@@ -13,6 +13,12 @@ public class FakeTokenRepository implements TokenRepository {
     private final List<Token> tokens = new ArrayList<>();
 
     @Override
+    public boolean existsByToken(String tokenString) {
+        return tokens.stream()
+            .anyMatch(token -> token.getToken().equals(tokenString));
+    }
+
+    @Override
     public Token save(Token token) {
         Token savedToken = token.withId(id.addAndGet(1));
         tokens.add(savedToken);

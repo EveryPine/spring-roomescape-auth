@@ -18,9 +18,10 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.test.annotation.DirtiesContext;
+import roomescape.TestAuthorizationProvider;
 import roomescape.global.auth.JwtProvider;
-import roomescape.global.auth.entity.Member;
 import roomescape.global.auth.entity.Role;
+import roomescape.global.auth.repository.TokenRepository;
 import roomescape.global.error.ErrorCode;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -28,15 +29,19 @@ import roomescape.global.error.ErrorCode;
 @DisplayName("매니저 예약의")
 class ManagerReservationApiTest {
 
-    private static final String BEARER_PREFIX = "Bearer ";
     private static final Long MANAGER_ID = 201L;
     private static final Long USER_ID = 1L;
+
+    @Autowired
+    private NamedParameterJdbcTemplate jdbcTemplate;
 
     @Autowired
     private JwtProvider jwtProvider;
 
     @Autowired
-    private NamedParameterJdbcTemplate jdbcTemplate;
+    private TokenRepository tokenRepository;
+
+    private TestAuthorizationProvider testAuthorizationProvider;
 
     @LocalServerPort
     private int port;
@@ -44,6 +49,7 @@ class ManagerReservationApiTest {
     @BeforeEach
     void setUp() {
         RestAssured.port = port;
+        testAuthorizationProvider = new TestAuthorizationProvider(jwtProvider, tokenRepository);
     }
 
     @Nested
@@ -54,7 +60,8 @@ class ManagerReservationApiTest {
         @DisplayName("담당 매장의 예약만 조회한다.")
         void 성공() {
             given()
-                .header("Authorization", bearerToken(MANAGER_ID, Role.MANAGER))
+                .header("Authorization",
+                    testAuthorizationProvider.bearerTokenWithMemberId(Role.MANAGER, MANAGER_ID))
                 .when()
                 .get("/api/manager/reservations")
                 .then()
@@ -72,7 +79,8 @@ class ManagerReservationApiTest {
         @DisplayName("담당 매장의 예약을 생성한다.")
         void 성공() {
             given()
-                .header("Authorization", bearerToken(MANAGER_ID, Role.MANAGER))
+                .header("Authorization",
+                    testAuthorizationProvider.bearerTokenWithMemberId(Role.MANAGER, MANAGER_ID))
                 .contentType(ContentType.JSON)
                 .body(Map.of(
                     "memberId", USER_ID,
@@ -93,7 +101,8 @@ class ManagerReservationApiTest {
         @DisplayName("담당하지 않는 매장의 예약 생성을 시도하면 403을 반환한다.")
         void 실패() {
             given()
-                .header("Authorization", bearerToken(MANAGER_ID, Role.MANAGER))
+                .header("Authorization",
+                    testAuthorizationProvider.bearerTokenWithMemberId(Role.MANAGER, MANAGER_ID))
                 .contentType(ContentType.JSON)
                 .body(Map.of(
                     "memberId", USER_ID,
@@ -120,7 +129,8 @@ class ManagerReservationApiTest {
             updateReservationDate(1L, "2026-12-31");
 
             given()
-                .header("Authorization", bearerToken(MANAGER_ID, Role.MANAGER))
+                .header("Authorization",
+                    testAuthorizationProvider.bearerTokenWithMemberId(Role.MANAGER, MANAGER_ID))
                 .contentType(ContentType.JSON)
                 .body(Map.of(
                     "date", "2026-12-30",
@@ -138,7 +148,8 @@ class ManagerReservationApiTest {
             Long id = createAdminReservation(2L);
 
             given()
-                .header("Authorization", bearerToken(MANAGER_ID, Role.MANAGER))
+                .header("Authorization",
+                    testAuthorizationProvider.bearerTokenWithMemberId(Role.MANAGER, MANAGER_ID))
                 .contentType(ContentType.JSON)
                 .body(Map.of(
                     "date", "2026-12-30",
@@ -162,7 +173,8 @@ class ManagerReservationApiTest {
             updateReservationDate(1L, "2026-12-31");
 
             given()
-                .header("Authorization", bearerToken(MANAGER_ID, Role.MANAGER))
+                .header("Authorization",
+                    testAuthorizationProvider.bearerTokenWithMemberId(Role.MANAGER, MANAGER_ID))
                 .when()
                 .delete("/api/manager/reservations/{id}", 1L)
                 .then()
@@ -175,7 +187,8 @@ class ManagerReservationApiTest {
             Long id = createAdminReservation(2L);
 
             given()
-                .header("Authorization", bearerToken(MANAGER_ID, Role.MANAGER))
+                .header("Authorization",
+                    testAuthorizationProvider.bearerTokenWithMemberId(Role.MANAGER, MANAGER_ID))
                 .when()
                 .delete("/api/manager/reservations/{id}", id)
                 .then()
@@ -186,7 +199,8 @@ class ManagerReservationApiTest {
 
     private Long createAdminReservation(Long storeId) {
         return given()
-            .header("Authorization", bearerToken(200L, Role.ADMIN))
+            .header("Authorization",
+                testAuthorizationProvider.bearerTokenWithMemberId(Role.ADMIN, 200L))
             .contentType(ContentType.JSON)
             .body(Map.of(
                 "memberId", USER_ID,
@@ -211,12 +225,5 @@ class ManagerReservationApiTest {
             "id", id
         ));
         jdbcTemplate.update(sql, parameters);
-    }
-
-    private String bearerToken(Long memberId, Role role) {
-        Member member = Member.create("테스트사용자", role.name().toLowerCase(), "password", role)
-            .withId(memberId);
-
-        return BEARER_PREFIX + jwtProvider.generateToken(member);
     }
 }

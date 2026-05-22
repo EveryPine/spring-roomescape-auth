@@ -18,6 +18,8 @@ import org.springframework.test.context.DynamicPropertySource;
 import roomescape.global.auth.JwtProvider;
 import roomescape.global.auth.entity.Member;
 import roomescape.global.auth.entity.Role;
+import roomescape.global.auth.entity.Token;
+import roomescape.global.auth.repository.TokenRepository;
 import roomescape.global.error.ErrorCode;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -29,6 +31,9 @@ class AuthenticationPrincipalConfigTest {
 
     @Autowired
     private JwtProvider jwtProvider;
+
+    @Autowired
+    private TokenRepository tokenRepository;
 
     @DynamicPropertySource
     static void jwtProperties(DynamicPropertyRegistry registry) {
@@ -128,8 +133,11 @@ class AuthenticationPrincipalConfigTest {
     private String token(Role role) {
         Member member = Member.create("테스트", role.name().toLowerCase(), "password", role)
             .withId(1L);
+        String token = jwtProvider.generateToken(member);
+        tokenRepository.save(
+            Token.create(member.getId(), token, jwtProvider.extractExpiration(token)));
 
-        return jwtProvider.generateToken(member);
+        return token;
     }
 
     private static String secretKey() {

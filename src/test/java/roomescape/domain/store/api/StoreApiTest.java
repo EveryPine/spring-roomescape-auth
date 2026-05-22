@@ -17,6 +17,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import roomescape.TestAuthorizationProvider;
 import roomescape.global.auth.JwtProvider;
 import roomescape.global.auth.entity.Role;
+import roomescape.global.auth.repository.TokenRepository;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
@@ -26,6 +27,9 @@ public class StoreApiTest {
     @Autowired
     private JwtProvider jwtProvider;
 
+    @Autowired
+    private TokenRepository tokenRepository;
+
     private TestAuthorizationProvider testAuthorizationProvider;
 
     @LocalServerPort
@@ -34,7 +38,7 @@ public class StoreApiTest {
     @BeforeEach
     void setUp() {
         RestAssured.port = port;
-        testAuthorizationProvider = new TestAuthorizationProvider(jwtProvider);
+        testAuthorizationProvider = new TestAuthorizationProvider(jwtProvider, tokenRepository);
     }
 
     @Nested

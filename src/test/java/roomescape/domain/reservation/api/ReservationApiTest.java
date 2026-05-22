@@ -12,13 +12,14 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.beans.factory.annotation.Autowired;
 import roomescape.TestAuthorizationProvider;
 import roomescape.global.auth.JwtProvider;
 import roomescape.global.auth.entity.Role;
+import roomescape.global.auth.repository.TokenRepository;
 import roomescape.global.error.TypeMismatchMessage;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -28,6 +29,8 @@ class ReservationApiTest {
 
     @Autowired
     private JwtProvider jwtProvider;
+    @Autowired
+    private TokenRepository tokenRepository;
 
     private TestAuthorizationProvider testAuthorizationProvider;
 
@@ -37,7 +40,7 @@ class ReservationApiTest {
     @BeforeEach
     void setUp() {
         RestAssured.port = port;
-        testAuthorizationProvider = new TestAuthorizationProvider(jwtProvider);
+        testAuthorizationProvider = new TestAuthorizationProvider(jwtProvider, tokenRepository);
     }
 
     @Nested

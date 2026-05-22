@@ -24,6 +24,15 @@ public class JdbcTokenRepository implements TokenRepository {
     }
 
     @Override
+    public boolean existsByToken(String token) {
+        String sql = "SELECT EXISTS (SELECT 1 FROM token WHERE token = :token)";
+        SqlParameterSource parameters = new MapSqlParameterSource("token", token);
+
+        return Boolean.TRUE.equals(
+            this.jdbcTemplate.queryForObject(sql, parameters, Boolean.class));
+    }
+
+    @Override
     public Token save(Token token) {
         SqlParameterSource parameters = new MapSqlParameterSource(Map.of(
             "member_id", token.getMemberId(),

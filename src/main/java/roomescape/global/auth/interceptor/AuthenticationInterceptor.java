@@ -8,21 +8,21 @@ import org.springframework.web.servlet.HandlerInterceptor;
 import roomescape.global.auth.AuthenticationExtractor;
 import roomescape.global.auth.JwtProvider;
 import roomescape.global.auth.entity.Role;
-import roomescape.global.auth.repository.TokenBlacklistRepository;
+import roomescape.global.auth.repository.TokenRepository;
 import roomescape.global.error.ErrorCode;
 import roomescape.global.error.exception.BusinessException;
 
 @Component
 public class AuthenticationInterceptor implements HandlerInterceptor {
 
-    private final TokenBlacklistRepository tokenBlacklistRepository;
+    private final TokenRepository tokenRepository;
     private final AuthenticationExtractor authenticationExtractor;
     private final JwtProvider jwtProvider;
 
-    public AuthenticationInterceptor(TokenBlacklistRepository tokenBlacklistRepository,
+    public AuthenticationInterceptor(TokenRepository tokenRepository,
         AuthenticationExtractor authenticationExtractor,
         JwtProvider jwtProvider) {
-        this.tokenBlacklistRepository = tokenBlacklistRepository;
+        this.tokenRepository = tokenRepository;
         this.authenticationExtractor = authenticationExtractor;
         this.jwtProvider = jwtProvider;
     }
@@ -32,8 +32,8 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
         Object handler) {
         String accessToken = authenticationExtractor.extract(request);
         Claims claims = jwtProvider.validateToken(accessToken);
-        if (tokenBlacklistRepository.existsByToken(accessToken)) {
-            throw new BusinessException(ErrorCode.AUTH_UNAUTHORIZED);
+        if (!tokenRepository.existsByToken(accessToken)) {
+            throw new BusinessException(ErrorCode.AUTH_INVALID_TOKEN);
         }
 
         request.setAttribute("accessToken", accessToken);

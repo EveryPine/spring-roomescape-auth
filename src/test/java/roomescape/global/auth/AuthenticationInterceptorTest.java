@@ -12,8 +12,9 @@ import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import roomescape.global.auth.entity.Member;
 import roomescape.global.auth.entity.Role;
+import roomescape.global.auth.entity.Token;
 import roomescape.global.auth.interceptor.AuthenticationInterceptor;
-import roomescape.global.auth.repository.FakeTokenBlacklistRepository;
+import roomescape.global.auth.repository.FakeTokenRepository;
 import roomescape.global.error.ErrorCode;
 import roomescape.global.error.exception.BusinessException;
 
@@ -23,8 +24,9 @@ class AuthenticationInterceptorTest {
         secretKey(),
         3_600_000L
     );
+    private final FakeTokenRepository tokenRepository = new FakeTokenRepository();
     private final AuthenticationInterceptor interceptor = new AuthenticationInterceptor(
-        new FakeTokenBlacklistRepository(),
+        tokenRepository,
         new AuthenticationExtractor(),
         jwtProvider
     );
@@ -36,6 +38,8 @@ class AuthenticationInterceptorTest {
         Member member = Member.create("관리자", "admin", "password", Role.ADMIN)
             .withId(1L);
         String token = jwtProvider.generateToken(member);
+        tokenRepository.save(
+            Token.create(member.getId(), token, jwtProvider.extractExpiration(token)));
         MockHttpServletRequest request = new MockHttpServletRequest();
         request.addHeader("Authorization", "Bearer " + token);
 

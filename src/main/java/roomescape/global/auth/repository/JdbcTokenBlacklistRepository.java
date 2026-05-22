@@ -34,12 +34,4 @@ public class JdbcTokenBlacklistRepository implements TokenBlacklistRepository {
 
         return tokenBlacklist.withId(generatedKey);
     }
-
-    @Override
-    public boolean existsByToken(String token) {
-        String sql = "SELECT EXISTS (SELECT 1 FROM token_blacklist WHERE token = :token)";
-        SqlParameterSource parameters = new MapSqlParameterSource("token", token);
-
-        return Boolean.TRUE.equals(jdbcTemplate.queryForObject(sql, parameters, Boolean.class));
-    }
 }

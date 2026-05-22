@@ -19,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import roomescape.TestAuthorizationProvider;
 import roomescape.global.auth.JwtProvider;
 import roomescape.global.auth.entity.Role;
+import roomescape.global.auth.repository.TokenRepository;
 import roomescape.global.error.TypeMismatchMessage;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -29,6 +30,9 @@ class AdminThemeApiTest {
     @Autowired
     private JwtProvider jwtProvider;
 
+    @Autowired
+    private TokenRepository tokenRepository;
+
     private TestAuthorizationProvider testAuthorizationProvider;
 
     @LocalServerPort
@@ -37,7 +41,7 @@ class AdminThemeApiTest {
     @BeforeEach
     void setUp() {
         RestAssured.port = port;
-        testAuthorizationProvider = new TestAuthorizationProvider(jwtProvider);
+        testAuthorizationProvider = new TestAuthorizationProvider(jwtProvider, tokenRepository);
     }
 
     @Nested
