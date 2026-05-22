@@ -61,7 +61,7 @@ public class JwtProvider {
         }
     }
 
-    public LocalDateTime extractExpirationTime(String token) {
+    public LocalDateTime extractExpiration(String token) {
         Claims claims = validateToken(token);
 
         return claims.getExpiration()

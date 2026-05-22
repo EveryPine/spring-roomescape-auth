@@ -9,9 +9,11 @@ import roomescape.global.auth.dto.request.LoginRequestDto;
 import roomescape.global.auth.dto.request.MemberCreateRequestDto;
 import roomescape.global.auth.entity.Member;
 import roomescape.global.auth.entity.Role;
+import roomescape.global.auth.entity.Token;
 import roomescape.global.auth.entity.TokenBlacklist;
 import roomescape.global.auth.repository.MemberRepository;
 import roomescape.global.auth.repository.TokenBlacklistRepository;
+import roomescape.global.auth.repository.TokenRepository;
 import roomescape.global.error.ErrorCode;
 import roomescape.global.error.exception.BusinessException;
 
@@ -20,12 +22,14 @@ import roomescape.global.error.exception.BusinessException;
 public class AuthService {
 
     private final MemberRepository memberRepository;
+    private final TokenRepository tokenRepository;
     private final TokenBlacklistRepository tokenBlacklistRepository;
     private final JwtProvider jwtProvider;
 
-    public AuthService(MemberRepository memberRepository,
+    public AuthService(MemberRepository memberRepository, TokenRepository tokenRepository,
         TokenBlacklistRepository tokenBlacklistRepository, JwtProvider jwtProvider) {
         this.memberRepository = memberRepository;
+        this.tokenRepository = tokenRepository;
         this.tokenBlacklistRepository = tokenBlacklistRepository;
         this.jwtProvider = jwtProvider;
     }
@@ -48,13 +52,16 @@ public class AuthService {
             throw new BusinessException(ErrorCode.AUTH_LOGIN_FAILED);
         }
 
-        return jwtProvider.generateToken(member.get());
+        String token = jwtProvider.generateToken(member.get());
+        tokenRepository.save(Token.create(token, jwtProvider.extractExpiration(token)));
+        
+        return token;
     }
 
     @Transactional
     public void logout(String accessToken) {
         TokenBlacklist tokenBlacklist = TokenBlacklist.create(accessToken,
-            jwtProvider.extractExpirationTime(accessToken));
+            jwtProvider.extractExpiration(accessToken));
 
         tokenBlacklistRepository.save(tokenBlacklist);
     }
