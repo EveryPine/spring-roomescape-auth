@@ -11,9 +11,11 @@ CREATE TABLE member
 CREATE TABLE token
 (
     id         BIGINT        NOT NULL AUTO_INCREMENT,
+    member_id  BIGINT        NOT NULL,
     token      VARCHAR(1000) NOT NULL,
     expired_at TIMESTAMP     NOT NULL,
-    PRIMARY KEY (id)
+    PRIMARY KEY (id),
+    FOREIGN KEY (member_id) REFERENCES member (id) ON DELETE CASCADE
 );
 
 CREATE TABLE token_blacklist
