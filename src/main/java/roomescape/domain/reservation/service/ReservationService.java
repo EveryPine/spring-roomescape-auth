@@ -37,10 +37,8 @@ public class ReservationService {
     private final StoreRepository storeRepository;
 
     public ReservationService(ReservationRepository reservationRepository,
-        ManagerStoreRepository managerStoreRepository,
-        TimeRepository timeRepository,
-        ThemeRepository themeRepository,
-        StoreRepository storeRepository) {
+        ManagerStoreRepository managerStoreRepository, TimeRepository timeRepository,
+        ThemeRepository themeRepository, StoreRepository storeRepository) {
         this.reservationRepository = reservationRepository;
         this.managerStoreRepository = managerStoreRepository;
         this.timeRepository = timeRepository;
@@ -59,28 +57,23 @@ public class ReservationService {
     }
 
     public List<ReservationResponseDto> getReservationsByManagerId(Long managerId) {
-        List<Long> storeIds = managerStoreRepository.findByManagerId(managerId)
-            .stream()
-            .map(ManagerStore::getStoreId)
-            .toList();
+        List<Long> storeIds = managerStoreRepository.findByManagerId(managerId).stream()
+            .map(ManagerStore::getStoreId).toList();
         List<Reservation> reservations = reservationRepository.findAllByStoreIds(storeIds);
 
         return convertReservationsToDto(reservations);
     }
 
     private List<ReservationResponseDto> convertReservationsToDto(List<Reservation> reservations) {
-        return reservations.stream()
-            .map(ReservationResponseDto::from)
-            .toList();
+        return reservations.stream().map(ReservationResponseDto::from).toList();
     }
 
     @Transactional
     public ReservationCreateResponseDto saveReservation(Long memberId,
         ReservationCreateRequestDto request, LocalDateTime now) {
-        Reservation reservation = createReservation(memberId, request.timeId(),
-            request.themeId(), request.storeId(), request.date(), now);
-        validateDuplicates(request.date(), request.timeId(), request.themeId(),
-            request.storeId());
+        Reservation reservation = createReservation(memberId, request.timeId(), request.themeId(),
+            request.storeId(), request.date(), now);
+        validateDuplicates(request.date(), request.timeId(), request.themeId(), request.storeId());
 
         return ReservationCreateResponseDto.from(reservationRepository.save(reservation));
     }
@@ -130,28 +123,21 @@ public class ReservationService {
     }
 
     private Store getStoreById(Long storeId) {
-        return storeRepository.findById(storeId)
-            .orElseThrow(() -> new BusinessException(
-                ErrorCode.COMMON_INVALID_REQUEST_BODY,
-                ErrorDetail.of("storeId", "요청한 지점 id가 존재하지 않습니다.")
-            ));
+        return storeRepository.findById(storeId).orElseThrow(
+            () -> new BusinessException(ErrorCode.COMMON_INVALID_REQUEST_BODY,
+                ErrorDetail.of("storeId", storeId, "요청한 지점 id가 존재하지 않습니다.")));
     }
 
     private Theme getThemeById(Long themeId) {
-        return themeRepository.findThemeById(themeId)
-            .orElseThrow(() -> new BusinessException(
-                ErrorCode.COMMON_INVALID_REQUEST_BODY,
-                ErrorDetail.of("themeId", "요청한 테마 id가 존재하지 않습니다.")
-            ));
+        return themeRepository.findThemeById(themeId).orElseThrow(
+            () -> new BusinessException(ErrorCode.COMMON_INVALID_REQUEST_BODY,
+                ErrorDetail.of("themeId", themeId, "요청한 테마 id가 존재하지 않습니다.")));
     }
 
     private Time getTimeById(Long timeId) {
-        return timeRepository.findTimeById(timeId)
-            .orElseThrow(() -> new BusinessException(
-                ErrorCode.COMMON_INVALID_REQUEST_BODY,
-                ErrorDetail.of("timeId",
-                    "요청한 시간 id가 존재하지 않습니다.")
-            ));
+        return timeRepository.findTimeById(timeId).orElseThrow(
+            () -> new BusinessException(ErrorCode.COMMON_INVALID_REQUEST_BODY,
+                ErrorDetail.of("timeId", timeId, "요청한 시간 id가 존재하지 않습니다.")));
     }
 
     @Transactional
