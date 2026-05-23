@@ -30,28 +30,28 @@ public class FakeReservationRepository implements ReservationRepository {
     }
 
     @Override
-    public List<Reservation> findReservationsByMemberId(Long memberId) {
+    public List<Reservation> findAllByMemberId(Long memberId) {
         return reservations.stream()
             .filter(reservation -> reservation.getMemberId().equals(memberId))
             .toList();
     }
 
     @Override
-    public List<Reservation> findReservationsByStoreIds(List<Long> storeIds) {
+    public List<Reservation> findAllByStoreIds(List<Long> storeIds) {
         return reservations.stream()
             .filter(reservation -> storeIds.contains(reservation.getStore().getId()))
             .toList();
     }
 
     @Override
-    public Optional<Reservation> findReservationById(Long id) {
+    public Optional<Reservation> findById(Long id) {
         return reservations.stream()
             .filter(reservation -> reservation.getId().equals(id))
             .findFirst();
     }
 
     @Override
-    public Optional<Reservation> findReservationByDateTimeThemeIdAndStoreId(LocalDate date,
+    public Optional<Reservation> findByDateTimeThemeIdAndStoreId(LocalDate date,
         Long timeId, Long themeId, Long storeId) {
         return reservations.stream()
             .filter(reservation -> Objects.equals(reservation.getDate(), date))
@@ -100,7 +100,7 @@ public class FakeReservationRepository implements ReservationRepository {
     }
 
     @Override
-    public void updateReservationById(Long id, LocalDate date, Long timeId) {
+    public void updateById(Long id, LocalDate date, Long timeId) {
         for (int i = 0; i < reservations.size(); i++) {
             Reservation reservation = reservations.get(i);
 
@@ -123,7 +123,7 @@ public class FakeReservationRepository implements ReservationRepository {
     }
 
     @Override
-    public int deleteReservationById(Long id) {
+    public int deleteById(Long id) {
         int beforeSize = reservations.size();
         reservations.removeIf(reservation -> Objects.equals(reservation.getId(), id));
 

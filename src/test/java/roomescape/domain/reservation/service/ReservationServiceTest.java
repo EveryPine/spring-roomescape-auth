@@ -99,16 +99,19 @@ class ReservationServiceTest {
 
     private Reservation saveReservation(Long memberId, LocalDate date, Time time, Theme theme,
         Store store) {
-        return reservationRepository.save(Reservation.create(memberId, date, time, theme, store, NOW));
+        return reservationRepository.save(
+            Reservation.create(memberId, date, time, theme, store, NOW));
     }
 
     private Reservation saveDefaultReservation(Long memberId, Store store) {
-        return saveReservation(memberId, LocalDate.of(2026, 5, 3), Time.create(LocalTime.of(13, 0)).withId(2L), theme, store);
+        return saveReservation(memberId, LocalDate.of(2026, 5, 3),
+            Time.create(LocalTime.of(13, 0)).withId(2L), theme, store);
     }
 
     private Reservation savePastReservation(Long memberId, Store store) {
         return reservationRepository.save(Reservation.create(memberId, LocalDate.of(2025, 12, 31),
-            Time.create(LocalTime.of(13, 0)).withId(1L), theme, store, LocalDateTime.MIN).withId(1L));
+                Time.create(LocalTime.of(13, 0)).withId(1L), theme, store, LocalDateTime.MIN)
+            .withId(1L));
     }
 
     private void saveThreeReservations(Store store) {
@@ -248,7 +251,8 @@ class ReservationServiceTest {
         @DisplayName("날짜, 시간과 테마가 모두 같은 예약이 존재하는 경우 예외가 발생한다.")
         void 실패1() {
             Time time = timeRepository.save(Time.create(LocalTime.of(15, 30)));
-            Theme theme = themeRepository.save(Theme.create("테마명", "테마 설명", DEFAULT_THEME_IMAGE_URL));
+            Theme theme = themeRepository.save(
+                Theme.create("테마명", "테마 설명", DEFAULT_THEME_IMAGE_URL));
             Store store = storeRepository.save(Store.create("지점명"));
             Long memberId = 1L;
             ReservationCreateRequestDto request = new ReservationCreateRequestDto(
@@ -269,7 +273,8 @@ class ReservationServiceTest {
         @Test
         @DisplayName("요청한 시간 id가 존재하지 않으면 예외가 발생한다.")
         void 실패2() {
-            Theme theme = themeRepository.save(Theme.create("테마명", "테마 설명", DEFAULT_THEME_IMAGE_URL));
+            Theme theme = themeRepository.save(
+                Theme.create("테마명", "테마 설명", DEFAULT_THEME_IMAGE_URL));
             Long wrongTimeId = 99999L;
             ReservationCreateRequestDto request = new ReservationCreateRequestDto(
                 LocalDate.of(2026, 5, 1),
@@ -308,7 +313,8 @@ class ReservationServiceTest {
         @DisplayName("지난 날짜와 시간으로 예약을 생성하려고 하면 예외가 발생한다.")
         void 실패4() {
             Time time = timeRepository.save(Time.create(LocalTime.of(15, 30)));
-            Theme theme = themeRepository.save(Theme.create("테마명", "테마 설명", DEFAULT_THEME_IMAGE_URL));
+            Theme theme = themeRepository.save(
+                Theme.create("테마명", "테마 설명", DEFAULT_THEME_IMAGE_URL));
             Store store = storeRepository.save(Store.create("지점명"));
             ReservationCreateRequestDto request = new ReservationCreateRequestDto(
                 LocalDate.of(2025, 12, 31),
@@ -335,7 +341,8 @@ class ReservationServiceTest {
             Long memberId = 1L;
             Long managerId = manager.getId();
             Time time = timeRepository.save(Time.create(LocalTime.of(15, 30)));
-            Theme theme = themeRepository.save(Theme.create("테마명", "테마 설명", DEFAULT_THEME_IMAGE_URL));
+            Theme theme = themeRepository.save(
+                Theme.create("테마명", "테마 설명", DEFAULT_THEME_IMAGE_URL));
             Store store = storeRepository.save(Store.create("지점명"));
             StaffReservationCreateRequestDto request = new StaffReservationCreateRequestDto(
                 LocalDate.of(2026, 5, 1),
@@ -365,7 +372,8 @@ class ReservationServiceTest {
         @DisplayName("요청한 시간 id가 존재하지 않으면 예외가 발생한다.")
         void 실패1() {
             Long managerId = manager.getId();
-            Theme theme = themeRepository.save(Theme.create("테마명", "테마 설명", DEFAULT_THEME_IMAGE_URL));
+            Theme theme = themeRepository.save(
+                Theme.create("테마명", "테마 설명", DEFAULT_THEME_IMAGE_URL));
             Store store = storeRepository.save(Store.create("지점명"));
             StaffReservationCreateRequestDto request = new StaffReservationCreateRequestDto(
                 LocalDate.of(2026, 5, 1),
@@ -408,7 +416,8 @@ class ReservationServiceTest {
         void 실패3() {
             Long managerId = manager.getId();
             Time time = timeRepository.save(Time.create(LocalTime.of(15, 30)));
-            Theme theme = themeRepository.save(Theme.create("테마명", "테마 설명", DEFAULT_THEME_IMAGE_URL));
+            Theme theme = themeRepository.save(
+                Theme.create("테마명", "테마 설명", DEFAULT_THEME_IMAGE_URL));
             StaffReservationCreateRequestDto request = new StaffReservationCreateRequestDto(
                 LocalDate.of(2026, 5, 1),
                 1L,
@@ -432,7 +441,8 @@ class ReservationServiceTest {
             Member otherManager = memberRepository.save(
                 Member.create("매니저2", "manager2", "1234", Role.MANAGER));
             Time time = timeRepository.save(Time.create(LocalTime.of(15, 30)));
-            Theme theme = themeRepository.save(Theme.create("테마명", "테마 설명", DEFAULT_THEME_IMAGE_URL));
+            Theme theme = themeRepository.save(
+                Theme.create("테마명", "테마 설명", DEFAULT_THEME_IMAGE_URL));
             Store store = storeRepository.save(Store.create("지점명"));
             assignManagerStore(managerId, store);
             StaffReservationCreateRequestDto request = new StaffReservationCreateRequestDto(
@@ -457,7 +467,8 @@ class ReservationServiceTest {
             Long memberId = 1L;
             Long managerId = manager.getId();
             Time time = timeRepository.save(Time.create(LocalTime.of(15, 30)));
-            Theme theme = themeRepository.save(Theme.create("테마명", "테마 설명", DEFAULT_THEME_IMAGE_URL));
+            Theme theme = themeRepository.save(
+                Theme.create("테마명", "테마 설명", DEFAULT_THEME_IMAGE_URL));
             Store store = storeRepository.save(Store.create("지점명"));
             StaffReservationCreateRequestDto request = new StaffReservationCreateRequestDto(
                 LocalDate.of(2026, 5, 1),
@@ -482,7 +493,8 @@ class ReservationServiceTest {
         void 실패6() {
             Long managerId = manager.getId();
             Time time = timeRepository.save(Time.create(LocalTime.of(15, 30)));
-            Theme theme = themeRepository.save(Theme.create("테마명", "테마 설명", DEFAULT_THEME_IMAGE_URL));
+            Theme theme = themeRepository.save(
+                Theme.create("테마명", "테마 설명", DEFAULT_THEME_IMAGE_URL));
             Store store = storeRepository.save(Store.create("지점명"));
             StaffReservationCreateRequestDto request = new StaffReservationCreateRequestDto(
                 LocalDate.of(2025, 12, 31),
@@ -519,7 +531,7 @@ class ReservationServiceTest {
             reservationService.updateManagerReservation(managerId, savedReservation.getId(),
                 request, NOW);
 
-            Optional<Reservation> actual = reservationRepository.findReservationById(
+            Optional<Reservation> actual = reservationRepository.findById(
                 savedReservation.getId());
             assertAll(
                 () -> assertThat(actual).isPresent(),
@@ -537,15 +549,15 @@ class ReservationServiceTest {
             Time time = timeRepository.save(Time.create(LocalTime.of(13, 0)));
             assignManagerStore(managerId, store);
             Reservation savedReservation = saveReservation(memberId, LocalDate.of(2026, 5, 3), time,
-                    theme,
-                    store);
+                theme,
+                store);
             ReservationUpdateRequestDto request = new ReservationUpdateRequestDto(
                 savedReservation.getDate(), time.getId());
 
             reservationService.updateManagerReservation(managerId, savedReservation.getId(),
                 request, NOW);
 
-            Optional<Reservation> actual = reservationRepository.findReservationById(
+            Optional<Reservation> actual = reservationRepository.findById(
                 savedReservation.getId());
             assertAll(
                 () -> assertThat(actual).isPresent(),
@@ -617,10 +629,11 @@ class ReservationServiceTest {
             Time originalTime = timeRepository.save(Time.create(LocalTime.of(13, 0)));
             Time duplicatedTime = timeRepository.save(Time.create(LocalTime.of(15, 0)));
             assignManagerStore(managerId, store);
-            Reservation savedReservation = saveReservation(memberId, LocalDate.of(2026, 5, 3), originalTime, theme,
-                    store);
+            Reservation savedReservation = saveReservation(memberId, LocalDate.of(2026, 5, 3),
+                originalTime, theme,
+                store);
             saveReservation(2L, LocalDate.of(2026, 5, 4), duplicatedTime, theme,
-                    store);
+                store);
             ReservationUpdateRequestDto request = new ReservationUpdateRequestDto(
                 LocalDate.of(2026, 5, 4), duplicatedTime.getId());
 
@@ -669,23 +682,24 @@ class ReservationServiceTest {
     }
 
     @Nested
-    @DisplayName("updateReservation 테스트")
+    @DisplayName("updateUserReservation 테스트")
     class UpdateReservationTest {
 
         @Test
         @DisplayName("주어진 예약의 날짜와 시간을 변경한다.")
         void 성공1() {
             Long memberId = 1L;
-            Reservation savedReservation = saveDefaultReservation(memberId, Store.create("강남점").withId(1L));
+            Reservation savedReservation = saveDefaultReservation(memberId,
+                Store.create("강남점").withId(1L));
             Long id = savedReservation.getId();
             LocalDate changeDate = LocalDate.of(2026, 5, 2);
             Long changeTimeId = timeRepository.save(Time.create(LocalTime.of(20, 30))).getId();
             ReservationUpdateRequestDto request = new ReservationUpdateRequestDto(
                 changeDate, changeTimeId);
 
-            reservationService.updateReservation(memberId, id, request,
+            reservationService.updateUserReservation(memberId, id, request,
                 NOW);
-            Optional<Reservation> updatedReservation = reservationRepository.findReservationById(
+            Optional<Reservation> updatedReservation = reservationRepository.findById(
                 id);
 
             assertThat(updatedReservation).isPresent();
@@ -701,15 +715,15 @@ class ReservationServiceTest {
             Long memberId = 1L;
             Time time = timeRepository.save(Time.create(LocalTime.of(13, 0)));
             Reservation savedReservation = saveReservation(memberId, LocalDate.of(2026, 5, 3), time,
-                    theme,
-                    Store.create("강남점").withId(1L));
+                theme,
+                Store.create("강남점").withId(1L));
             ReservationUpdateRequestDto request = new ReservationUpdateRequestDto(
                 savedReservation.getDate(), time.getId());
 
-            reservationService.updateReservation(memberId, savedReservation.getId(), request,
+            reservationService.updateUserReservation(memberId, savedReservation.getId(), request,
                 NOW);
 
-            Optional<Reservation> actual = reservationRepository.findReservationById(
+            Optional<Reservation> actual = reservationRepository.findById(
                 savedReservation.getId());
 
             assertAll(
@@ -725,18 +739,18 @@ class ReservationServiceTest {
             Long memberId = 1L;
             Reservation savedReservation = reservationRepository.save(Reservation.create(memberId,
                 LocalDate.of(2026, 1, 1),
-                    Time.create(LocalTime.of(13, 0)).withId(1L),
-                    theme,
-                    Store.create("강남점").withId(1L),
-                    LocalDateTime.of(2025, 12, 31, 0, 0)));
+                Time.create(LocalTime.of(13, 0)).withId(1L),
+                theme,
+                Store.create("강남점").withId(1L),
+                LocalDateTime.of(2025, 12, 31, 0, 0)));
             Long changeTimeId = timeRepository.save(Time.create(LocalTime.of(13, 0))).getId();
             ReservationUpdateRequestDto request = new ReservationUpdateRequestDto(
                 LocalDate.of(2026, 1, 1), changeTimeId);
 
-            reservationService.updateReservation(memberId, savedReservation.getId(), request,
+            reservationService.updateUserReservation(memberId, savedReservation.getId(), request,
                 LocalDateTime.of(2026, 1, 1, 10, 0));
 
-            Optional<Reservation> actual = reservationRepository.findReservationById(
+            Optional<Reservation> actual = reservationRepository.findById(
                 savedReservation.getId());
             assertAll(
                 () -> assertThat(actual).isPresent(),
@@ -749,7 +763,8 @@ class ReservationServiceTest {
         @DisplayName("요청한 시간 id가 존재하지 않으면 예외가 발생한다.")
         void 실패1() {
             Long memberId = 1L;
-            Reservation savedReservation = saveDefaultReservation(memberId, Store.create("강남점").withId(1L));
+            Reservation savedReservation = saveDefaultReservation(memberId,
+                Store.create("강남점").withId(1L));
             Long id = savedReservation.getId();
             LocalDate changeDate = LocalDate.of(2026, 5, 2);
             Long wrongId = 99999L;
@@ -758,7 +773,7 @@ class ReservationServiceTest {
             ErrorDetail expectedErrors = new ErrorDetail("timeId", wrongId.toString(),
                 "요청한 시간 id가 존재하지 않습니다.");
 
-            assertThatThrownBy(() -> reservationService.updateReservation(memberId, id, request,
+            assertThatThrownBy(() -> reservationService.updateUserReservation(memberId, id, request,
                 NOW))
                 .isInstanceOfSatisfying(BusinessException.class, exception -> assertAll(
                     () -> assertThat(exception.getErrorCode())
@@ -770,7 +785,8 @@ class ReservationServiceTest {
         @Test
         @DisplayName("요청한 예약에 권한이 없는 경우 예외가 발생한다.")
         void 실패2() {
-            Reservation savedReservation = saveDefaultReservation(1L, Store.create("강남점").withId(1L));
+            Reservation savedReservation = saveDefaultReservation(1L,
+                Store.create("강남점").withId(1L));
             Long wrongMemberId = 2L;
             Long id = savedReservation.getId();
             LocalDate changeDate = LocalDate.of(2026, 5, 2);
@@ -779,7 +795,7 @@ class ReservationServiceTest {
                 changeDate, wrongId);
 
             assertThatThrownBy(
-                () -> reservationService.updateReservation(wrongMemberId, id, request,
+                () -> reservationService.updateUserReservation(wrongMemberId, id, request,
                     NOW))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
@@ -793,15 +809,16 @@ class ReservationServiceTest {
             Time originalTime = timeRepository.save(Time.create(LocalTime.of(13, 0)));
             Time duplicatedTime = timeRepository.save(Time.create(LocalTime.of(20, 30)));
             Store store = storeRepository.save(Store.create("지점명"));
-            Reservation savedReservation = saveReservation(memberId, LocalDate.of(2026, 5, 3), originalTime, theme,
-                    store);
+            Reservation savedReservation = saveReservation(memberId, LocalDate.of(2026, 5, 3),
+                originalTime, theme,
+                store);
             saveReservation(2L, LocalDate.of(2026, 5, 4), duplicatedTime, theme,
-                    store);
+                store);
             Long id = savedReservation.getId();
             ReservationUpdateRequestDto request = new ReservationUpdateRequestDto(
                 LocalDate.of(2026, 5, 4), duplicatedTime.getId());
 
-            assertThatThrownBy(() -> reservationService.updateReservation(memberId, id, request,
+            assertThatThrownBy(() -> reservationService.updateUserReservation(memberId, id, request,
                 NOW))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
@@ -820,7 +837,8 @@ class ReservationServiceTest {
             ReservationUpdateRequestDto request = new ReservationUpdateRequestDto(
                 changeDate, changeTimeId);
 
-            assertThatThrownBy(() -> reservationService.updateReservation(memberId, id, request, NOW))
+            assertThatThrownBy(
+                () -> reservationService.updateUserReservation(memberId, id, request, NOW))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(ErrorCode.RESERVATION_ALREADY_PASSED);
@@ -838,7 +856,7 @@ class ReservationServiceTest {
             ReservationUpdateRequestDto request = new ReservationUpdateRequestDto(
                 changeDate, changeTimeId);
 
-            assertThatThrownBy(() -> reservationService.updateReservation(memberId, id, request,
+            assertThatThrownBy(() -> reservationService.updateUserReservation(memberId, id, request,
                 NOW))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
@@ -851,14 +869,14 @@ class ReservationServiceTest {
             Long memberId = 1L;
             Store store = storeRepository.save(Store.create("지점명"));
             Reservation savedReservation = saveReservation(memberId, LocalDate.of(2026, 1, 2),
-                    Time.create(LocalTime.of(13, 0)).withId(2L),
-                    theme,
-                    store);
+                Time.create(LocalTime.of(13, 0)).withId(2L),
+                theme,
+                store);
             Long pastTimeId = timeRepository.save(Time.create(LocalTime.of(9, 0))).getId();
             ReservationUpdateRequestDto request = new ReservationUpdateRequestDto(
                 LocalDate.of(2026, 1, 1), pastTimeId);
 
-            assertThatThrownBy(() -> reservationService.updateReservation(memberId,
+            assertThatThrownBy(() -> reservationService.updateUserReservation(memberId,
                 savedReservation.getId(), request, LocalDateTime.of(2026, 1, 1, 10, 0)))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
@@ -874,7 +892,7 @@ class ReservationServiceTest {
                 LocalDate.of(2026, 5, 2), timeId);
 
             assertThatThrownBy(
-                () -> reservationService.updateReservation(1L, notFoundId, request,
+                () -> reservationService.updateUserReservation(1L, notFoundId, request,
                     NOW))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
@@ -884,7 +902,7 @@ class ReservationServiceTest {
     }
 
     @Nested
-    @DisplayName("deleteReservationById 테스트")
+    @DisplayName("deleteById 테스트")
     class DeleteReservationByIdTest {
 
         @Test
@@ -893,9 +911,9 @@ class ReservationServiceTest {
             // given
             Store store = storeRepository.save(Store.create("지점명"));
             Reservation savedReservation = saveReservation(1L, LocalDate.of(2026, 5, 2),
-                    Time.create(LocalTime.of(12, 0)).withId(1L),
-                    theme,
-                    store);
+                Time.create(LocalTime.of(12, 0)).withId(1L),
+                theme,
+                store);
             saveDefaultReservation(2L, store);
 
             // when
@@ -921,8 +939,10 @@ class ReservationServiceTest {
             Long managerId = manager.getId();
             Store store = Store.create("지점명").withId(1L);
             assignManagerStore(managerId, store);
-            Reservation savedReservation = saveReservation(1L, LocalDate.of(2026, 5, 3), Time.create(LocalTime.of(13, 0)).withId(1L), theme, store);
-            saveReservation(2L, LocalDate.of(2026, 5, 4), Time.create(LocalTime.of(14, 0)).withId(2L), theme, store);
+            Reservation savedReservation = saveReservation(1L, LocalDate.of(2026, 5, 3),
+                Time.create(LocalTime.of(13, 0)).withId(1L), theme, store);
+            saveReservation(2L, LocalDate.of(2026, 5, 4),
+                Time.create(LocalTime.of(14, 0)).withId(2L), theme, store);
 
             reservationService.deleteManagerReservationById(managerId, savedReservation.getId(),
                 NOW);
@@ -939,7 +959,8 @@ class ReservationServiceTest {
         void 실패1() {
             Long managerId = manager.getId();
             Store store = Store.create("지점명").withId(1L);
-            Reservation savedReservation = saveReservation(1L, LocalDate.of(2026, 5, 3), Time.create(LocalTime.of(13, 0)).withId(1L), theme, store);
+            Reservation savedReservation = saveReservation(1L, LocalDate.of(2026, 5, 3),
+                Time.create(LocalTime.of(13, 0)).withId(1L), theme, store);
 
             assertThatThrownBy(() -> reservationService.deleteManagerReservationById(managerId,
                 savedReservation.getId(), NOW))
@@ -985,8 +1006,10 @@ class ReservationServiceTest {
         void 성공() {
             Long memberId = 1L;
             Store store = storeRepository.save(Store.create("지점명"));
-            Reservation savedReservation = saveReservation(memberId, LocalDate.of(2026, 5, 3), Time.create(LocalTime.of(13, 0)).withId(1L), theme, store);
-            saveReservation(2L, LocalDate.of(2026, 5, 4), Time.create(LocalTime.of(14, 0)).withId(2L), theme, store);
+            Reservation savedReservation = saveReservation(memberId, LocalDate.of(2026, 5, 3),
+                Time.create(LocalTime.of(13, 0)).withId(1L), theme, store);
+            saveReservation(2L, LocalDate.of(2026, 5, 4),
+                Time.create(LocalTime.of(14, 0)).withId(2L), theme, store);
 
             reservationService.deleteMemberReservationById(memberId, savedReservation.getId(),
                 NOW);
@@ -1002,7 +1025,8 @@ class ReservationServiceTest {
         @DisplayName("다른 사용자의 예약을 삭제하려고 하면 예외가 발생한다.")
         void 실패1() {
             Store store = storeRepository.save(Store.create("지점명"));
-            Reservation savedReservation = saveReservation(1L, LocalDate.of(2026, 5, 3), Time.create(LocalTime.of(13, 0)).withId(1L), theme, store);
+            Reservation savedReservation = saveReservation(1L, LocalDate.of(2026, 5, 3),
+                Time.create(LocalTime.of(13, 0)).withId(1L), theme, store);
 
             assertThatThrownBy(() -> reservationService.deleteMemberReservationById(2L,
                 savedReservation.getId(), NOW))

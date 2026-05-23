@@ -55,7 +55,8 @@ public class ReservationController {
         @LoginMember Member member,
         @PathVariable Long id,
         @Valid @RequestBody ReservationUpdateRequestDto requestDto) {
-        reservationService.updateReservation(member.getId(), id, requestDto, LocalDateTime.now());
+        reservationService.updateUserReservation(member.getId(), id, requestDto,
+            LocalDateTime.now());
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 

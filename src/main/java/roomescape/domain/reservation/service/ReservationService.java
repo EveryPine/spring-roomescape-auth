@@ -5,7 +5,6 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import roomescape.domain.managerstore.entity.ManagerStore;
@@ -55,7 +54,7 @@ public class ReservationService {
     }
 
     public List<ReservationResponseDto> getReservationsByMemberId(Long memberId) {
-        List<Reservation> reservations = reservationRepository.findReservationsByMemberId(memberId);
+        List<Reservation> reservations = reservationRepository.findAllByMemberId(memberId);
         return convertReservationsToDto(reservations);
     }
 
@@ -64,7 +63,7 @@ public class ReservationService {
             .stream()
             .map(ManagerStore::getStoreId)
             .toList();
-        List<Reservation> reservations = reservationRepository.findReservationsByStoreIds(storeIds);
+        List<Reservation> reservations = reservationRepository.findAllByStoreIds(storeIds);
 
         return convertReservationsToDto(reservations);
     }
@@ -77,20 +76,18 @@ public class ReservationService {
 
     @Transactional
     public ReservationCreateResponseDto saveReservation(Long memberId,
-        ReservationCreateRequestDto requestDto,
-        LocalDateTime now) {
-        Reservation reservation = createReservation(memberId, requestDto.timeId(),
-            requestDto.themeId(), requestDto.storeId(), requestDto.date(), now);
-        validateDuplicates(requestDto.date(), requestDto.timeId(), requestDto.themeId(),
-            requestDto.storeId());
+        ReservationCreateRequestDto request, LocalDateTime now) {
+        Reservation reservation = createReservation(memberId, request.timeId(),
+            request.themeId(), request.storeId(), request.date(), now);
+        validateDuplicates(request.date(), request.timeId(), request.themeId(),
+            request.storeId());
+
         return ReservationCreateResponseDto.from(reservationRepository.save(reservation));
     }
 
     @Transactional
-    public ReservationCreateResponseDto saveManagerReservation(
-        Long managerId,
-        StaffReservationCreateRequestDto request,
-        LocalDateTime now) {
+    public ReservationCreateResponseDto saveManagerReservation(Long managerId,
+        StaffReservationCreateRequestDto request, LocalDateTime now) {
         Reservation reservation = createReservation(request.memberId(), request.timeId(),
             request.themeId(), request.storeId(), request.date(), now);
         validateManagerStore(managerId, request.storeId());
@@ -111,11 +108,10 @@ public class ReservationService {
     }
 
     private void validateDuplicates(LocalDate date, Long timeId, Long themeId, Long storeId) {
-        Optional<Reservation> reservation = reservationRepository.findReservationByDateTimeThemeIdAndStoreId(
-            date, timeId, themeId, storeId);
-        if (reservation.isPresent()) {
-            throw new BusinessException(ErrorCode.RESERVATION_DUPLICATE);
-        }
+        reservationRepository.findByDateTimeThemeIdAndStoreId(date, timeId, themeId, storeId)
+            .ifPresent(duplicateReservation -> {
+                throw new BusinessException(ErrorCode.RESERVATION_DUPLICATE);
+            });
     }
 
     private void validateManagerStore(Long managerId, Long storeId) {
@@ -126,23 +122,36 @@ public class ReservationService {
 
     private Reservation createReservation(Long memberId, Long timeId, Long themeId, Long storeId,
         LocalDate date, LocalDateTime now) {
-        Time time = timeRepository.findTimeById(timeId)
+        Time time = getTimeById(timeId);
+        Theme theme = getThemeById(themeId);
+        Store store = getStoreById(storeId);
+
+        return Reservation.create(memberId, date, time, theme, store, now);
+    }
+
+    private Store getStoreById(Long storeId) {
+        return storeRepository.findById(storeId)
+            .orElseThrow(() -> new BusinessException(
+                ErrorCode.COMMON_INVALID_REQUEST_BODY,
+                ErrorDetail.of("storeId", "요청한 지점 id가 존재하지 않습니다.")
+            ));
+    }
+
+    private Theme getThemeById(Long themeId) {
+        return themeRepository.findThemeById(themeId)
+            .orElseThrow(() -> new BusinessException(
+                ErrorCode.COMMON_INVALID_REQUEST_BODY,
+                ErrorDetail.of("themeId", "요청한 테마 id가 존재하지 않습니다.")
+            ));
+    }
+
+    private Time getTimeById(Long timeId) {
+        return timeRepository.findTimeById(timeId)
             .orElseThrow(() -> new BusinessException(
                 ErrorCode.COMMON_INVALID_REQUEST_BODY,
                 ErrorDetail.of("timeId",
                     "요청한 시간 id가 존재하지 않습니다.")
             ));
-        Theme theme = themeRepository.findThemeById(themeId)
-            .orElseThrow(() -> new BusinessException(
-                ErrorCode.COMMON_INVALID_REQUEST_BODY,
-                ErrorDetail.of("themeId", "요청한 테마 id가 존재하지 않습니다.")
-            ));
-        Store store = storeRepository.findById(storeId)
-            .orElseThrow(() -> new BusinessException(
-                ErrorCode.COMMON_INVALID_REQUEST_BODY,
-                ErrorDetail.of("storeId", "요청한 지점 id가 존재하지 않습니다.")
-            ));
-        return Reservation.create(memberId, date, time, theme, store, now);
     }
 
     @Transactional
@@ -150,52 +159,40 @@ public class ReservationService {
         ReservationUpdateRequestDto request, LocalDateTime now) {
         Reservation reservation = getReservationById(id);
         validateManagerStore(managerId, reservation.getStore().getId());
+        updateReservation(id, request, now, reservation);
+    }
+
+    @Transactional
+    public void updateUserReservation(Long memberId, Long id, ReservationUpdateRequestDto request,
+        LocalDateTime now) {
+        Reservation reservation = getReservationById(id);
+        validateOwner(memberId, reservation);
+        updateReservation(id, request, now, reservation);
+    }
+
+    private void updateReservation(Long id, ReservationUpdateRequestDto request, LocalDateTime now,
+        Reservation reservation) {
         Time time = getTimeById(request.timeId());
         validateDuplicatesExceptMe(id, request.date(), request.timeId(),
             reservation.getTheme().getId(), reservation.getStore().getId());
         validateDateAccessable(reservation, now);
         validateDateTimeChangeable(request.date(), time, now);
 
-        reservationRepository.updateReservationById(id, request.date(), request.timeId());
-    }
-
-    @Transactional
-    public void updateReservation(Long memberId, Long id, ReservationUpdateRequestDto requestDto,
-        LocalDateTime now) {
-        Reservation reservation = getReservationById(id);
-        validateOwner(memberId, reservation);
-        Time time = getTimeById(requestDto.timeId());
-        validateDuplicatesExceptMe(id, requestDto.date(), requestDto.timeId(),
-            reservation.getTheme().getId(), reservation.getStore().getId());
-        validateDateAccessable(reservation, now);
-        validateDateTimeChangeable(requestDto.date(), time, now);
-
-        reservationRepository.updateReservationById(id, requestDto.date(), requestDto.timeId());
+        reservationRepository.updateById(id, request.date(), request.timeId());
     }
 
     private Reservation getReservationById(Long id) {
-        Optional<Reservation> reservation = reservationRepository.findReservationById(id);
-        if (reservation.isEmpty()) {
-            throw new BusinessException(ErrorCode.RESERVATION_NOT_FOUND);
-        }
-        return reservation.get();
-    }
-
-    private Time getTimeById(Long timeId) {
-        return timeRepository.findTimeById(timeId)
-            .orElseThrow(
-                () -> new BusinessException(ErrorCode.COMMON_INVALID_REQUEST_BODY,
-                    ErrorDetail.of("timeId", timeId, "요청한 시간 id가 존재하지 않습니다.")));
+        return reservationRepository.findById(id)
+            .orElseThrow(() -> new BusinessException(ErrorCode.RESERVATION_NOT_FOUND));
     }
 
     private void validateDuplicatesExceptMe(Long id, LocalDate date, Long timeId, Long themeId,
         Long storeId) {
-        Optional<Reservation> reservation = reservationRepository.findReservationByDateTimeThemeIdAndStoreId(
-                date, timeId, themeId, storeId)
-            .filter(foundReservation -> !Objects.equals(foundReservation.getId(), id));
-        if (reservation.isPresent()) {
-            throw new BusinessException(ErrorCode.RESERVATION_DUPLICATE);
-        }
+        reservationRepository.findByDateTimeThemeIdAndStoreId(date, timeId, themeId, storeId)
+            .filter(foundReservation -> !Objects.equals(foundReservation.getId(), id))
+            .ifPresent(foundReservation -> {
+                throw new BusinessException(ErrorCode.RESERVATION_DUPLICATE);
+            });
     }
 
     private void validateDateTimeChangeable(LocalDate date, Time time, LocalDateTime now) {
@@ -209,7 +206,7 @@ public class ReservationService {
 
     @Transactional
     public void deleteReservationById(Long id) {
-        if (reservationRepository.deleteReservationById(id) == 0) {
+        if (reservationRepository.deleteById(id) == 0) {
             throw new BusinessException(ErrorCode.RESERVATION_NOT_FOUND);
         }
     }
@@ -219,7 +216,7 @@ public class ReservationService {
         Reservation reservation = getReservationById(id);
         validateOwner(memberId, reservation);
         validateDateAccessable(reservation, now);
-        reservationRepository.deleteReservationById(id);
+        reservationRepository.deleteById(id);
     }
 
     @Transactional
@@ -227,7 +224,7 @@ public class ReservationService {
         Reservation reservation = getReservationById(id);
         validateManagerStore(managerId, reservation.getStore().getId());
         validateDateAccessable(reservation, now);
-        if (reservationRepository.deleteReservationById(id) == 0) {
+        if (reservationRepository.deleteById(id) == 0) {
             throw new BusinessException(ErrorCode.RESERVATION_NOT_FOUND);
         }
     }
